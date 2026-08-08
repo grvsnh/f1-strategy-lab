@@ -21,6 +21,7 @@ import TrackCentricMap from "../components/TrackCentricMap";
 import DriverGrid from "../components/DriverGrid";
 import DriverIntelligenceModal from "../components/DriverIntelligenceModal";
 import MultiDriverComparison from "../components/MultiDriverComparison";
+import RaceReplay from "../components/RaceReplay";
 import { ChartSkeleton } from "../components/Skeletons";
 import Navbar from "../components/Navbar";
 import ErrorBoundary from "../components/ErrorBoundary";
@@ -203,6 +204,16 @@ export default function Home() {
 							/>
 						</div>
 					</div>
+				)}
+
+				{raceData && (
+					<ErrorBoundary>
+						<RaceReplay
+							year={selectedYear}
+							grandPrix={selectedGrandPrix}
+							session={selectedSession}
+						/>
+					</ErrorBoundary>
 				)}
 
 				<DriverIntelligenceModal

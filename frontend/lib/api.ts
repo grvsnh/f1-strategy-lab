@@ -46,6 +46,12 @@ export async function getCompareDrivers(
 	return response.json();
 }
 
+export async function getRaceReplay(year: number, grandPrix: string, session = "R") {
+	const response = await fetch(`${API_BASE}/replay/${year}/${grandPrix}?session=${session}`);
+	if (!response.ok) throw new Error("Failed to fetch race replay");
+	return response.json();
+}
+
 export async function getTelemetry(year: number, grandPrix: string, driver: string, session = "R") {
 	const response = await fetch(`${API_BASE}/telemetry/${year}/${grandPrix}/${driver}?session=${session}`);
 	if (!response.ok) throw new Error("Failed to fetch telemetry");

@@ -8,6 +8,7 @@ from app.services.track_service import get_track_map
 from app.services.track_outline_service import get_track_outline
 from app.services.driver_intelligence_service import get_driver_intelligence
 from app.services.comparison_service import get_multi_driver_comparison
+from app.services.replay_service import get_race_replay
 from app.services.delta_service import get_lap_delta
 
 from app.routes.strategy import router as strategy_router
@@ -16,7 +17,7 @@ from app.routes.schedule import router as schedule_router
 
 app = FastAPI(
     title="F1 Strategy Lab API",
-    version="0.2.0",
+    version="0.3.0",
 )
 
 app.add_middleware(
@@ -81,6 +82,15 @@ def compare_drivers(
     session: str = Query("R"),
 ):
     return get_multi_driver_comparison(year, grand_prix, drivers, metrics, session)
+
+
+@app.get("/replay/{year}/{grand_prix}")
+def race_replay(
+    year: int,
+    grand_prix: str,
+    session: str = Query("R"),
+):
+    return get_race_replay(year, grand_prix, session)
 
 
 @app.get("/telemetry/{year}/{grand_prix}/{driver}")
