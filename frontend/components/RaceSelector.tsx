@@ -15,17 +15,29 @@ interface ScheduleEvent {
 interface RaceSelectorProps {
 	selectedYear: number;
 	selectedGrandPrix: string;
+	selectedSession: string;
 	onYearChange: (year: number) => void;
 	onGrandPrixChange: (gp: string) => void;
+	onSessionChange: (session: string) => void;
 }
 
 const AVAILABLE_YEARS = [2024, 2023, 2022, 2021];
+const SESSIONS = [
+	{ code: "FP1", label: "FP1" },
+	{ code: "FP2", label: "FP2" },
+	{ code: "FP3", label: "FP3" },
+	{ code: "Q", label: "Quali" },
+	{ code: "S", label: "Sprint" },
+	{ code: "R", label: "Race" },
+];
 
 export default function RaceSelector({
 	selectedYear,
 	selectedGrandPrix,
+	selectedSession,
 	onYearChange,
 	onGrandPrixChange,
+	onSessionChange,
 }: RaceSelectorProps) {
 	const [schedule, setSchedule] = useState<ScheduleEvent[]>([]);
 	const [loading, setLoading] = useState(false);
@@ -37,7 +49,6 @@ export default function RaceSelector({
 				const events = await getSchedule(selectedYear);
 				setSchedule(events);
 
-				// If current selected GP is not in new schedule, select first event
 				if (events.length > 0) {
 					const exists = events.some(
 						(e: ScheduleEvent) =>
@@ -93,6 +104,27 @@ export default function RaceSelector({
 						</option>
 					))}
 				</select>
+			</div>
+
+			<div>
+				<label className="block text-xs text-zinc-400 uppercase mb-1">
+					Session
+				</label>
+				<div className="flex gap-1 bg-zinc-800 p-1 rounded-lg border border-zinc-700">
+					{SESSIONS.map((s) => (
+						<button
+							key={s.code}
+							onClick={() => onSessionChange(s.code)}
+							className={`px-3 py-1 text-xs font-semibold rounded-md transition ${
+								selectedSession === s.code
+									? "bg-red-600 text-white"
+									: "text-zinc-400 hover:text-white hover:bg-zinc-700"
+							}`}
+						>
+							{s.label}
+						</button>
+					))}
+				</div>
 			</div>
 		</div>
 	);

@@ -5,21 +5,20 @@ def get_strategy(
     year: int,
     grand_prix: str,
     driver: str,
+    session_name: str = "R",
 ):
-    session = fastf1.get_session(
-        year,
-        grand_prix,
-        "R",
-    )
-
+    session = fastf1.get_session(year, grand_prix, session_name)
     session.load()
 
     laps = session.laps.pick_drivers(driver)
+    if laps.empty or "Compound" not in laps.columns:
+        return {"driver": driver, "stints": []}
 
-    compounds = laps["Compound"].tolist()
+    compounds = laps["Compound"].fillna("UNKNOWN").tolist()
+    if not compounds:
+        return {"driver": driver, "stints": []}
 
     stints = []
-
     start_lap = 1
     current_compound = compounds[0]
 
@@ -32,7 +31,6 @@ def get_strategy(
                     "end_lap": i,
                 }
             )
-
             start_lap = i + 1
             current_compound = compounds[i]
 

@@ -19,9 +19,10 @@ interface TrackMapProps {
 	driver: string;
 	year?: number;
 	grandPrix?: string;
+	session?: string;
 }
 
-export default function TrackMap({ driver, year = 2024, grandPrix = "Bahrain" }: TrackMapProps) {
+export default function TrackMap({ driver, year = 2024, grandPrix = "Bahrain", session = "R" }: TrackMapProps) {
 	const [track, setTrack] = useState<TrackData | null>(null);
 
 	const [loading, setLoading] = useState(true);
@@ -31,7 +32,7 @@ export default function TrackMap({ driver, year = 2024, grandPrix = "Bahrain" }:
 			try {
 				setLoading(true);
 
-				const data = await getTrack(year, grandPrix, driver);
+				const data = await getTrack(year, grandPrix, driver, session);
 
 				setTrack(data);
 			} finally {
@@ -40,7 +41,7 @@ export default function TrackMap({ driver, year = 2024, grandPrix = "Bahrain" }:
 		}
 
 		loadTrack();
-	}, [driver, year, grandPrix]);
+	}, [driver, year, grandPrix, session]);
 
 	if (loading) {
 		return (

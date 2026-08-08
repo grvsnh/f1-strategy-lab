@@ -67,6 +67,7 @@ interface RecommendationData {
 export default function Home() {
 	const [selectedYear, setSelectedYear] = useState(2024);
 	const [selectedGrandPrix, setSelectedGrandPrix] = useState("Bahrain");
+	const [selectedSession, setSelectedSession] = useState("R");
 
 	const [raceData, setRaceData] = useState<RaceData | null>(null);
 
@@ -95,7 +96,7 @@ export default function Home() {
 		async function loadRace() {
 			try {
 				setError("");
-				const race = await getRace(selectedYear, selectedGrandPrix);
+				const race = await getRace(selectedYear, selectedGrandPrix, selectedSession);
 
 				setRaceData(race);
 				if (race.drivers && race.drivers.length >= 2) {
@@ -110,7 +111,7 @@ export default function Home() {
 		}
 
 		loadRace();
-	}, [selectedYear, selectedGrandPrix]);
+	}, [selectedYear, selectedGrandPrix, selectedSession]);
 
 	useEffect(() => {
 		async function loadAnalytics() {
@@ -121,11 +122,11 @@ export default function Home() {
 
 				const [dataA, dataB, delta, strategy, recommendation] =
 					await Promise.all([
-						getTelemetry(selectedYear, selectedGrandPrix, driverA),
-						getTelemetry(selectedYear, selectedGrandPrix, driverB),
-						getDelta(selectedYear, selectedGrandPrix, driverA, driverB),
-						getStrategy(selectedYear, selectedGrandPrix, driverA),
-						getRecommendation(selectedYear, selectedGrandPrix, driverA),
+						getTelemetry(selectedYear, selectedGrandPrix, driverA, selectedSession),
+						getTelemetry(selectedYear, selectedGrandPrix, driverB, selectedSession),
+						getDelta(selectedYear, selectedGrandPrix, driverA, driverB, selectedSession),
+						getStrategy(selectedYear, selectedGrandPrix, driverA, selectedSession),
+						getRecommendation(selectedYear, selectedGrandPrix, driverA, selectedSession),
 					]);
 
 				setTelemetryA(dataA);
@@ -145,7 +146,7 @@ export default function Home() {
 		}
 
 		loadAnalytics();
-	}, [selectedYear, selectedGrandPrix, driverA, driverB]);
+	}, [selectedYear, selectedGrandPrix, selectedSession, driverA, driverB]);
 
 	return (
 		<main className="min-h-screen bg-black text-white p-6">
@@ -163,8 +164,10 @@ export default function Home() {
 				<RaceSelector
 					selectedYear={selectedYear}
 					selectedGrandPrix={selectedGrandPrix}
+					selectedSession={selectedSession}
 					onYearChange={setSelectedYear}
 					onGrandPrixChange={setSelectedGrandPrix}
+					onSessionChange={setSelectedSession}
 				/>
 
 				{error && (
@@ -178,7 +181,7 @@ export default function Home() {
 						<div className="flex flex-col md:flex-row md:justify-between gap-4">
 							<div>
 								<h2 className="text-3xl font-bold">
-									{raceData.event}
+									{raceData.event} ({selectedSession})
 								</h2>
 
 								<p className="text-zinc-400 mt-2">
@@ -233,7 +236,7 @@ export default function Home() {
 				{telemetryA && telemetryB && deltaData && !loading && (
 					<>
 						<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-							<TrackMap driver={driverA} year={selectedYear} grandPrix={selectedGrandPrix} />
+							<TrackMap driver={driverA} year={selectedYear} grandPrix={selectedGrandPrix} session={selectedSession} />
 
 							{recommendationData && (
 								<RecommendationCard data={recommendationData} />
