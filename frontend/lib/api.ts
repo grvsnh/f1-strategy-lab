@@ -24,6 +24,12 @@ export async function getTrackOutline(year: number, grandPrix: string, session =
 	return response.json();
 }
 
+export async function getTrackEvents(year: number, grandPrix: string, session = "R") {
+	const response = await fetch(`${API_BASE}/track-events/${year}/${grandPrix}?session=${session}`);
+	if (!response.ok) throw new Error("Failed to fetch track events");
+	return response.json();
+}
+
 export async function getDriverIntelligence(year: number, grandPrix: string, driver: string, session = "R") {
 	const response = await fetch(`${API_BASE}/driver-intelligence/${year}/${grandPrix}/${driver}?session=${session}`);
 	if (!response.ok) throw new Error("Failed to fetch driver intelligence");

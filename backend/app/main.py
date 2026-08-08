@@ -9,6 +9,7 @@ from app.services.track_outline_service import get_track_outline
 from app.services.driver_intelligence_service import get_driver_intelligence
 from app.services.comparison_service import get_multi_driver_comparison
 from app.services.replay_service import get_race_replay
+from app.services.track_intelligence_service import get_track_events
 from app.services.delta_service import get_lap_delta
 
 from app.routes.strategy import router as strategy_router
@@ -61,6 +62,15 @@ def track_outline(
     session: str = Query("R"),
 ):
     return get_track_outline(year, grand_prix, session)
+
+
+@app.get("/track-events/{year}/{grand_prix}")
+def track_events(
+    year: int,
+    grand_prix: str,
+    session: str = Query("R"),
+):
+    return get_track_events(year, grand_prix, session)
 
 
 @app.get("/driver-intelligence/{year}/{grand_prix}/{driver}")
