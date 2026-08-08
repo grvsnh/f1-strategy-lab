@@ -26,6 +26,7 @@ import RaceReplay from "../components/RaceReplay";
 import TrackIntelligencePanel from "../components/TrackIntelligencePanel";
 import AdvancedRaceAnalytics from "../components/AdvancedRaceAnalytics";
 import HeroRaceSearchLanding from "../components/HeroRaceSearchLanding";
+import MotionPathLoader from "../components/MotionPathLoader";
 import { ChartSkeleton } from "../components/Skeletons";
 import Navbar from "../components/Navbar";
 import ErrorBoundary from "../components/ErrorBoundary";
@@ -78,8 +79,10 @@ interface RecommendationData {
 
 export default function Home() {
 	const [hasActiveSelection, setHasActiveSelection] = useState(false);
-	const [selectedYear, setSelectedYear] = useState(2024);
-	const [selectedGrandPrix, setSelectedGrandPrix] = useState("Bahrain");
+	const [isAnimatingLoader, setIsAnimatingLoader] = useState(false);
+
+	const [selectedYear, setSelectedYear] = useState(2026);
+	const [selectedGrandPrix, setSelectedGrandPrix] = useState("Bahrain Grand Prix");
 	const [selectedSession, setSelectedSession] = useState("R");
 
 	const [raceData, setRaceData] = useState<RaceData | null>(null);
@@ -109,11 +112,16 @@ export default function Home() {
 		setSelectedYear(year);
 		setSelectedGrandPrix(grandPrix);
 		setSelectedSession("R");
+		setIsAnimatingLoader(true);
+	};
+
+	const handleLoaderComplete = () => {
+		setIsAnimatingLoader(false);
 		setHasActiveSelection(true);
 	};
 
 	useEffect(() => {
-		if (!hasActiveSelection) return;
+		if (!hasActiveSelection && !isAnimatingLoader) return;
 
 		async function loadRace() {
 			try {
@@ -138,7 +146,7 @@ export default function Home() {
 		}
 
 		loadRace();
-	}, [hasActiveSelection, selectedYear, selectedGrandPrix, selectedSession]);
+	}, [hasActiveSelection, isAnimatingLoader, selectedYear, selectedGrandPrix, selectedSession]);
 
 	useEffect(() => {
 		if (!hasActiveSelection || !selectedGrandPrix) return;
@@ -177,149 +185,172 @@ export default function Home() {
 	}, [hasActiveSelection, selectedYear, selectedGrandPrix, selectedSession, driverA, driverB]);
 
 	return (
-		<div className="min-h-screen bg-black text-white pb-12">
-			<Navbar
-				activeYear={hasActiveSelection ? selectedYear : undefined}
-				activeGrandPrix={hasActiveSelection ? selectedGrandPrix : undefined}
-				activeSession={hasActiveSelection ? selectedSession : undefined}
-				onResetSearch={() => setHasActiveSelection(false)}
-			/>
+		<div className="min-h-screen bg-black text-white pb-12 font-mono">
+			{/* Motion Path F1 Circuit Animation Screen */}
+			{isAnimatingLoader && (
+				<MotionPathLoader
+					raceName={selectedGrandPrix}
+					year={selectedYear}
+					onComplete={handleLoaderComplete}
+				/>
+			)}
 
+			{/* MAIN LANDING SCREEN: No top navbar, only searchbar and multi-row race cards */}
 			{!hasActiveSelection ? (
 				<HeroRaceSearchLanding onSelectRace={handleSelectRaceFromLanding} />
 			) : (
-				<main className="max-w-7xl mx-auto px-6">
-					<RaceSelector
-						selectedYear={selectedYear}
-						selectedGrandPrix={selectedGrandPrix}
-						selectedSession={selectedSession}
-						onYearChange={setSelectedYear}
-						onGrandPrixChange={setSelectedGrandPrix}
-						onSessionChange={setSelectedSession}
+				<>
+					<Navbar
+						activeYear={selectedYear}
+						activeGrandPrix={selectedGrandPrix}
+						activeSession={selectedSession}
+						onResetSearch={() => setHasActiveSelection(false)}
 					/>
 
-					{error && (
-						<div className="rounded-2xl border border-red-500 bg-red-950 p-6 mb-6">
-							{error}
-						</div>
-					)}
+					<main className="max-w-7xl mx-auto px-6">
+						<RaceSelector
+							selectedYear={selectedYear}
+							selectedGrandPrix={selectedGrandPrix}
+							selectedSession={selectedSession}
+							onYearChange={setSelectedYear}
+							onGrandPrixChange={setSelectedGrandPrix}
+							onSessionChange={setSelectedSession}
+						/>
 
-					{raceData && (
-						<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-							<div className="lg:col-span-2">
-								<TrackCentricMap trackData={trackOutline} selectedDriver={driverA} />
+						{error && (
+							<div className="border-2 border-red-600 bg-red-950 p-4 mb-6 text-red-300 font-mono text-sm">
+								⚠️ {error}
 							</div>
+						)}
 
-							<div>
-								<DriverGrid
-									drivers={raceData.drivers}
-									activeDriverA={driverA}
-									activeDriverB={driverB}
-									onSelectDriver={setDriverA}
-									onSelectCompareDriver={setDriverB}
-									onOpenIntelligence={setIntelDriver}
+						{/* WORKBENCH LAYOUT: Left side Drivers, Middle Circuit Map, Right Analytics */}
+						{raceData && (
+							<div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-start">
+								{/* LEFT SIDE: Drivers List (Racers Names) */}
+								<div className="lg:col-span-3">
+									<DriverGrid
+										drivers={raceData.drivers}
+										activeDriverA={driverA}
+										activeDriverB={driverB}
+										onSelectDriver={setDriverA}
+										onSelectCompareDriver={setDriverB}
+										onOpenIntelligence={setIntelDriver}
+									/>
+								</div>
+
+								{/* MIDDLE: Circuit Racetrack Map */}
+								<div className="lg:col-span-5">
+									<TrackCentricMap trackData={trackOutline} selectedDriver={driverA} />
+								</div>
+
+								{/* RIGHT SIDE: Driver Telemetry Controls & Quick Insights */}
+								<div className="lg:col-span-4 space-y-4">
+									<div className="border-2 border-zinc-800 bg-zinc-950 p-4">
+										<h4 className="text-sm font-bold uppercase text-white mb-3 flex items-center justify-between border-b border-zinc-800 pb-2">
+											<span>ACTIVE DRIVER ANALYTICS</span>
+											<span className="bg-red-600 text-white text-xs px-2 py-0.5 font-black">
+												{driverA}
+											</span>
+										</h4>
+
+										<DriverSelector
+											label="PRIMARY DRIVER (A)"
+											value={driverA}
+											drivers={raceData.drivers}
+											onChange={setDriverA}
+										/>
+
+										<div className="mt-3">
+											<DriverSelector
+												label="COMPARISON DRIVER (B)"
+												value={driverB}
+												drivers={raceData.drivers}
+												onChange={setDriverB}
+											/>
+										</div>
+
+										<div className="mt-3">
+											<MetricSelector
+												value={metric}
+												onChange={setMetric}
+											/>
+										</div>
+									</div>
+
+									{recommendationData && (
+										<RecommendationCard data={recommendationData} />
+									)}
+								</div>
+							</div>
+						)}
+
+						{/* Interactive Race Replay, Track Intelligence & Sector Matrix */}
+						{raceData && (
+							<ErrorBoundary>
+								<RaceReplay
+									year={selectedYear}
+									grandPrix={selectedGrandPrix}
+									session={selectedSession}
 								/>
-							</div>
-						</div>
-					)}
+								<TrackIntelligencePanel
+									year={selectedYear}
+									grandPrix={selectedGrandPrix}
+									session={selectedSession}
+								/>
+								<AdvancedRaceAnalytics
+									year={selectedYear}
+									grandPrix={selectedGrandPrix}
+									session={selectedSession}
+								/>
+							</ErrorBoundary>
+						)}
 
-					{raceData && (
-						<ErrorBoundary>
-							<RaceReplay
-								year={selectedYear}
-								grandPrix={selectedGrandPrix}
-								session={selectedSession}
-							/>
-							<TrackIntelligencePanel
-								year={selectedYear}
-								grandPrix={selectedGrandPrix}
-								session={selectedSession}
-							/>
-							<AdvancedRaceAnalytics
-								year={selectedYear}
-								grandPrix={selectedGrandPrix}
-								session={selectedSession}
-							/>
-						</ErrorBoundary>
-					)}
-
-					<DriverIntelligenceModal
-						driver={intelDriver}
-						year={selectedYear}
-						grandPrix={selectedGrandPrix}
-						session={selectedSession}
-						onClose={() => setIntelDriver(null)}
-					/>
-
-					{raceData && raceData.drivers && (
-						<MultiDriverComparison
-							availableDrivers={raceData.drivers}
+						<DriverIntelligenceModal
+							driver={intelDriver}
 							year={selectedYear}
 							grandPrix={selectedGrandPrix}
 							session={selectedSession}
+							onClose={() => setIntelDriver(null)}
 						/>
-					)}
 
-					{raceData && (
-						<div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 mb-6">
-							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-								<DriverSelector
-									label="Driver A"
-									value={driverA}
-									drivers={raceData.drivers}
-									onChange={setDriverA}
-								/>
-
-								<DriverSelector
-									label="Driver B"
-									value={driverB}
-									drivers={raceData.drivers}
-									onChange={setDriverB}
-								/>
-
-								<MetricSelector
-									value={metric}
-									onChange={setMetric}
-								/>
-							</div>
-						</div>
-					)}
-
-					{loading && (
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
-							<ChartSkeleton height={300} />
-							<ChartSkeleton height={300} />
-						</div>
-					)}
-
-					{telemetryA && telemetryB && deltaData && !loading && (
-						<ErrorBoundary>
-							<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-								<TrackMap driver={driverA} year={selectedYear} grandPrix={selectedGrandPrix} session={selectedSession} />
-
-								{recommendationData && (
-									<RecommendationCard data={recommendationData} />
-								)}
-							</div>
-
-							<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-								{strategyData && (
-									<StrategyCard data={strategyData} />
-								)}
-
-								<LapDeltaChart data={deltaData} />
-							</div>
-
-							<TelemetryChart
-								driverA={driverA}
-								driverB={driverB}
-								telemetryA={telemetryA}
-								telemetryB={telemetryB}
-								metric={metric}
+						{raceData && raceData.drivers && (
+							<MultiDriverComparison
+								availableDrivers={raceData.drivers}
+								year={selectedYear}
+								grandPrix={selectedGrandPrix}
+								session={selectedSession}
 							/>
-						</ErrorBoundary>
-					)}
-				</main>
+						)}
+
+						{loading && (
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+								<ChartSkeleton height={300} />
+								<ChartSkeleton height={300} />
+							</div>
+						)}
+
+						{/* Telemetry Charts & Lap Delta */}
+						{telemetryA && telemetryB && deltaData && !loading && (
+							<ErrorBoundary>
+								<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+									<TrackMap driver={driverA} year={selectedYear} grandPrix={selectedGrandPrix} session={selectedSession} />
+									{strategyData && <StrategyCard data={strategyData} />}
+								</div>
+
+								<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+									<LapDeltaChart data={deltaData} />
+									<TelemetryChart
+										driverA={driverA}
+										driverB={driverB}
+										telemetryA={telemetryA}
+										telemetryB={telemetryB}
+										metric={metric}
+									/>
+								</div>
+							</ErrorBoundary>
+						)}
+					</main>
+				</>
 			)}
 		</div>
 	);
