@@ -2,16 +2,20 @@
 
 ## 1. Introduction
 
-This document describes the REST API exposed by the F1 Strategy Lab backend.
+This document describes the REST API exposed by the F1 Strategy Lab backend (v0.3.0).
 
 The API is implemented using FastAPI and provides endpoints for:
 
-- Race Information
-- Telemetry Analysis
-- Track Visualization
-- Lap Delta Analysis
-- Strategy Analysis
-- Recommendation Generation
+- Season & Schedule Selection
+- Session Explorer
+- Track-Centric Dashboard & Outline
+- Driver Intelligence & Performance Data
+- Multi-Driver Comparison
+- Interactive Race Replay
+- Track Events & Battle Analytics
+- Advanced Race Analytics
+- Telemetry & Lap Delta Analysis
+- Strategy & Recommendation Engine
 
 ---
 
@@ -29,268 +33,143 @@ http://localhost:8000
 
 ## Health Check
 
-### Endpoint
-
 ```http
 GET /
 ```
 
-### Response
+---
 
-```json
-{
-	"status": "online",
-	"project": "F1 Strategy Lab"
-}
+## Season Schedule
+
+```http
+GET /schedule/{year}
 ```
+
+Returns list of official Grand Prix events for the season.
+
+---
+
+## Sessions List
+
+```http
+GET /sessions/{year}/{grand_prix}
+```
+
+Returns available F1 sessions (FP1, FP2, FP3, Q, S, R).
 
 ---
 
 ## Race Information
 
-### Endpoint
+```http
+GET /race/{year}/{grand_prix}?session={session}
+```
+
+Returns metadata and driver lineup for a selected race & session.
+
+---
+
+## Track Outline
 
 ```http
-GET /race/{year}/{grand_prix}
+GET /track-outline/{year}/{grand_prix}?session={session}
 ```
 
-### Description
+Returns track geometry coordinates for minimal initial loading.
 
-Returns metadata for a selected Formula 1 race.
+---
 
-### Example
+## Driver Intelligence
 
 ```http
-GET /race/2024/Bahrain
+GET /driver-intelligence/{year}/{grand_prix}/{driver}?session={session}
 ```
 
-### Response
+Returns driver profile, fastest lap, top speed, sector splits, stint compounds, and pit stop count.
 
-```json
-{
-	"event": "Bahrain Grand Prix",
-	"location": "Sakhir",
-	"country": "Bahrain",
-	"year": 2024,
-	"drivers": ["VER", "PER", "SAI", "LEC"]
-}
+---
+
+## Multi-Driver Comparison
+
+```http
+GET /compare/{year}/{grand_prix}?drivers=VER&drivers=HAM&metrics=speed&session={session}
 ```
+
+Returns on-demand telemetry for multiple drivers and specified metrics.
+
+---
+
+## Interactive Race Replay
+
+```http
+GET /replay/{year}/{grand_prix}?session={session}
+```
+
+Returns 2D animation position coordinates across laps for all drivers.
+
+---
+
+## Track Events & Intelligence
+
+```http
+GET /track-events/{year}/{grand_prix}?session={session}
+```
+
+Returns close driver battles (<1.0s gap), strategy pit stop events, and sector split ranges.
+
+---
+
+## Advanced Race Analytics
+
+```http
+GET /analytics/advanced/{year}/{grand_prix}?session={session}
+```
+
+Returns position progression timelines, median race pace comparison, and sector speed trap matrix.
 
 ---
 
 ## Driver Telemetry
 
-### Endpoint
-
 ```http
-GET /telemetry/{year}/{grand_prix}/{driver}
-```
-
-### Description
-
-Returns telemetry data for the selected driver's fastest lap.
-
-### Example
-
-```http
-GET /telemetry/2024/Bahrain/VER
-```
-
-### Response
-
-```json
-{
-	"driver": "VER",
-	"speed": [],
-	"throttle": [],
-	"brake": [],
-	"rpm": [],
-	"gear": [],
-	"drs": [],
-	"samples": []
-}
+GET /telemetry/{year}/{grand_prix}/{driver}?session={session}
 ```
 
 ---
 
 ## Track Map
 
-### Endpoint
-
 ```http
-GET /track/{year}/{grand_prix}/{driver}
-```
-
-### Description
-
-Returns track coordinates and speed data for visualization.
-
-### Example
-
-```http
-GET /track/2024/Bahrain/VER
-```
-
-### Response
-
-```json
-{
-	"driver": "VER",
-	"x": [],
-	"y": [],
-	"speed": []
-}
+GET /track/{year}/{grand_prix}/{driver}?session={session}
 ```
 
 ---
 
 ## Lap Delta Analysis
 
-### Endpoint
-
 ```http
-GET /delta/{year}/{grand_prix}/{driver_a}/{driver_b}
-```
-
-### Description
-
-Returns telemetry delta between two drivers.
-
-### Example
-
-```http
-GET /delta/2024/Bahrain/VER/HAM
-```
-
-### Response
-
-```json
-{
-	"driver_a": "VER",
-	"driver_b": "HAM",
-	"delta": [],
-	"samples": []
-}
+GET /delta/{year}/{grand_prix}/{driver_a}/{driver_b}?session={session}
 ```
 
 ---
 
 ## Strategy Analysis
 
-### Endpoint
-
 ```http
-GET /strategy/{year}/{grand_prix}/{driver}
-```
-
-### Description
-
-Returns tyre strategy and stint information.
-
-### Example
-
-```http
-GET /strategy/2024/Bahrain/VER
-```
-
-### Response
-
-```json
-{
-	"driver": "VER",
-	"stints": [
-		{
-			"compound": "SOFT",
-			"start_lap": 1,
-			"end_lap": 17
-		},
-		{
-			"compound": "HARD",
-			"start_lap": 18,
-			"end_lap": 37
-		}
-	]
-}
+GET /strategy/{year}/{grand_prix}/{driver}?session={session}
 ```
 
 ---
 
 ## Strategy Recommendation
 
-### Endpoint
-
 ```http
-GET /recommendation/{year}/{grand_prix}/{driver}
-```
-
-### Description
-
-Generates a strategy recommendation for a selected driver.
-
-### Example
-
-```http
-GET /recommendation/2024/Bahrain/VER
-```
-
-### Response
-
-```json
-{
-	"driver": "VER",
-	"current_compound": "SOFT",
-	"current_tyre_life": 20,
-	"recommended_pit_lap": 57,
-	"remaining_laps": -2,
-	"message": "BOX THIS LAP"
-}
+GET /recommendation/{year}/{grand_prix}/{driver}?session={session}
 ```
 
 ---
 
-# 4. Response Format
-
-All successful requests return JSON responses.
-
-Example:
-
-```json
-{
-	"key": "value"
-}
-```
-
----
-
-# 5. Error Responses
-
-### Invalid Driver
-
-```json
-{
-	"detail": "Driver not found"
-}
-```
-
-### Invalid Grand Prix
-
-```json
-{
-	"detail": "Grand Prix not found"
-}
-```
-
-### Internal Server Error
-
-```json
-{
-	"detail": "Internal server error"
-}
-```
-
----
-
-# 6. Frontend Integration
+# 4. Frontend Integration
 
 Frontend API requests are centralized in:
 
@@ -298,64 +177,21 @@ Frontend API requests are centralized in:
 frontend/lib/api.ts
 ```
 
-Available helper functions include:
+Helper functions include:
 
 ```ts
+getSchedule();
+getSessions();
 getRace();
+getTrackOutline();
+getTrackEvents();
+getAdvancedRaceAnalytics();
+getDriverIntelligence();
+getCompareDrivers();
+getRaceReplay();
 getTelemetry();
 getTrack();
 getDelta();
 getStrategy();
 getRecommendation();
 ```
-
----
-
-# 7. Future Endpoints
-
-The following endpoints are planned for future releases:
-
-### Race Search
-
-```http
-GET /races
-```
-
-### Driver Search
-
-```http
-GET /drivers
-```
-
-### Sector Analysis
-
-```http
-GET /sector/{year}/{grand_prix}/{driver}
-```
-
-### Strategy Simulation
-
-```http
-POST /simulate
-```
-
-### AI Analytics
-
-```http
-POST /analyze
-```
-
----
-
-# 8. Summary
-
-The current API provides six analytical endpoints covering:
-
-- Race Information
-- Telemetry Analysis
-- Track Visualization
-- Lap Delta Analysis
-- Strategy Analysis
-- Recommendation Generation
-
-These endpoints form the backend foundation of F1 Strategy Lab and support all current dashboard functionality.

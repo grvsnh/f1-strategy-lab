@@ -1,216 +1,96 @@
-# F1 Strategy Lab
+# F1 Strategy Lab (v0.3.0)
 
-F1 Strategy Lab is an open-source Formula 1 analytics platform designed to transform race telemetry into meaningful performance insights and strategic recommendations.
+F1 Strategy Lab is an open-source Formula 1 analytics platform designed to transform race telemetry into meaningful performance insights, real-time race replay, and strategic recommendations.
 
-The platform combines telemetry visualization, driver comparison, track analysis, and strategy evaluation into a unified analytical dashboard built on real Formula 1 data.
+The platform combines telemetry visualization, driver comparison, track analysis, 2D race replay animation, track intelligence, and strategy evaluation into a unified analytical dashboard built on real Formula 1 data.
 
 ---
 
 # Features
 
-## Race Information
+## Race Explorer & Dynamic Selection
+- Dynamic Season Selection (2021–2024+)
+- Session Explorer (FP1, FP2, FP3, Qualifying, Sprint, Race)
+- Track-Centric Dashboard Layout with surrounding driver grid
+- Minimal initial payload loading
 
-Retrieve race metadata including:
+## Interactive 2D Race Replay
+- Real-time 60fps 2D animated track map
+- Draggable timeline scrubber across laps/time frames
+- Play/Pause & Speed Controls (1x, 2x, 5x, 10x)
+- Multi-driver visibility toggles & single-driver spotlight mode
 
-- Event Information
-- Circuit Location
-- Driver Lineup
-- Season Data
+## Track Intelligence & Battle Analytics
+- Automated close driver battle detection (<1.0s gap)
+- Pit stop strategy markers and compound change annotations
+- Sector 1, Sector 2, Sector 3 split breakdowns
 
-## Telemetry Analysis
+## Driver Intelligence
+- On-demand driver profile modal
+- Fastest lap time & top speed stats
+- Sector split times & tyre compound history
 
-Compare driver telemetry using interactive visualizations.
+## Multi-Driver Comparison & Analytics
+- Multi-driver comparative telemetry overlays
+- Position progression timelines across laps
+- Median race pace consistency matrix
 
-Supported metrics:
-
-- Speed
-- Throttle
-- Brake
-- RPM
-- Gear
-- DRS
-
-## Track Visualization
-
-Visualize a driver's fastest lap using positional telemetry data.
-
-Features include:
-
-- Circuit Rendering
-- Track Mapping
-- Speed-Based Heatmaps
-
-## Lap Delta Analysis
-
-Compare driver performance throughout a lap and identify gains and losses across the circuit.
-
-## Strategy Analysis
-
-Analyze tyre compounds, pit stops, and race stints.
-
-## Strategy Recommendations
-
-Generate pit stop recommendations based on current tyre usage and race conditions.
+## Telemetry & Strategy Engine
+- Metric selection (Speed, Throttle, Brake, RPM, Gear, DRS)
+- Speed heatmaps on circuit layouts
+- Lap delta comparison between drivers
+- Stint breakdown & real-time pit window recommendations
 
 ---
 
 # Technology Stack
 
 ## Frontend
-
-- Next.js
-- React
+- Next.js (App Router)
+- React 19
 - TypeScript
 - Tailwind CSS
-- Plotly.js
+- Plotly.js / Canvas Visualization
 
 ## Backend
-
-- Python
+- Python 3.11
 - FastAPI
 - FastF1
-
-## Data Source
-
-- FastF1
-- Official Formula 1 Timing Data
+- Pandas / NumPy
 
 ---
 
-# Project Structure
-
-```text
-f1-strategy-lab/
-│
-├── backend/
-├── frontend/
-├── data/
-├── docs/
-│
-├── README.md
-├── LICENSE
-└── .gitignore
-```
-
----
-
-# Getting Started
+# Quick Start
 
 ## Backend
-
 ```bash
 cd backend
-
-python -m venv .venv
-
-source .venv/bin/activate
-
-pip install -r requirements.txt
-
+python -m pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
-
-Backend URL:
-
-```text
-http://localhost:8000
-```
-
----
+Backend API: `http://localhost:8000`
 
 ## Frontend
-
 ```bash
 cd frontend
-
 npm install
-
 npm run dev
 ```
-
-Frontend URL:
-
-```text
-http://localhost:3000
-```
+Frontend App: `http://localhost:3000`
 
 ---
 
 # Documentation
 
-Detailed project documentation is available in the `docs/` directory.
-
-Available documents:
-
-- Software Requirements Specification (SRS)
-- Use Cases
-- Domain Model
-- System Architecture
-- API Reference
-- Team Onboarding Guide
-
-Supporting diagrams include:
-
-- Use Case Diagram
-- Domain Model Diagram
-- Architecture Diagram
-- Analysis Workflow Diagram
-
----
-
-# Roadmap
-
-## Current
-
-- Race Information Retrieval
-- Telemetry Analysis
-- Track Visualization
-- Speed Heatmaps
-- Lap Delta Analysis
-- Strategy Analysis
-- Recommendation Engine
-
-## Planned
-
-- Dynamic Race Search
-- Multi-Race Comparison
-- Sector Analysis
-- Pit Window Prediction
-- Strategy Simulation Engine
-- AI-Assisted Strategy Analysis
-
----
-
-# Contributing
-
-Contributions are welcome.
-
-Areas of contribution include:
-
-- Frontend Development
-- Backend Development
-- Data Visualization
-- Strategy Analytics
-- Documentation
-
-Please refer to:
-
-```text
-docs/TEAM_ONBOARDING.md
-```
-
-before contributing.
+Detailed documentation in `docs/`:
+- `SRS.md` - Software Requirements Specification
+- `ARCHITECTURE.md` - System Architecture & Services Map
+- `API_REFERENCE.md` - Complete REST API Reference (14 endpoints)
+- `DOMAIN_MODEL.md` - Domain Model & Entities
+- `USE_CASES.md` - Key Use Cases
 
 ---
 
 # License
 
-This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
-
-See the LICENSE file for details.
-
----
-
-# Vision
-
-The long-term goal of F1 Strategy Lab is to evolve into a complete race engineering and strategy analysis platform capable of supporting telemetry exploration, strategy simulation, predictive analytics, and advanced decision-support tooling for Formula 1 enthusiasts, students, researchers, and developers.
+GNU Affero General Public License v3.0 (AGPL-3.0). See LICENSE file for details.
