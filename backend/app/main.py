@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.services.fastf1_service import get_race_info, get_event_sessions
 from app.services.telemetry_service import get_driver_telemetry
 from app.services.track_service import get_track_map
+from app.services.track_outline_service import get_track_outline
 from app.services.delta_service import get_lap_delta
 
 from app.routes.strategy import router as strategy_router
@@ -44,9 +45,18 @@ def get_sessions(year: int, grand_prix: str):
 def get_race(
     year: int,
     grand_prix: str,
-    session: str = Query("R", description="Session identifier (FP1, FP2, FP3, Q, S, R)"),
+    session: str = Query("R"),
 ):
     return get_race_info(year, grand_prix, session)
+
+
+@app.get("/track-outline/{year}/{grand_prix}")
+def track_outline(
+    year: int,
+    grand_prix: str,
+    session: str = Query("R"),
+):
+    return get_track_outline(year, grand_prix, session)
 
 
 @app.get("/telemetry/{year}/{grand_prix}/{driver}")

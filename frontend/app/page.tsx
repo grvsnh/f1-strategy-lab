@@ -17,6 +17,9 @@ import LapDeltaChart from "../components/LapDeltaChart";
 import StrategyCard from "../components/StrategyCard";
 import RecommendationCard from "../components/RecommendationCard";
 import RaceSelector from "../components/RaceSelector";
+import TrackCentricMap from "../components/TrackCentricMap";
+import DriverGrid from "../components/DriverGrid";
+import { getTrackOutline } from "../lib/api";
 
 interface RaceData {
 	event: string;
@@ -70,6 +73,7 @@ export default function Home() {
 	const [selectedSession, setSelectedSession] = useState("R");
 
 	const [raceData, setRaceData] = useState<RaceData | null>(null);
+	const [trackOutline, setTrackOutline] = useState<any>(null);
 
 	const [telemetryA, setTelemetryA] = useState<TelemetryData | null>(null);
 
@@ -96,9 +100,14 @@ export default function Home() {
 		async function loadRace() {
 			try {
 				setError("");
-				const race = await getRace(selectedYear, selectedGrandPrix, selectedSession);
+				const [race, outline] = await Promise.all([
+					getRace(selectedYear, selectedGrandPrix, selectedSession),
+					getTrackOutline(selectedYear, selectedGrandPrix, selectedSession).catch(() => null),
+				]);
 
 				setRaceData(race);
+				setTrackOutline(outline);
+
 				if (race.drivers && race.drivers.length >= 2) {
 					if (!race.drivers.includes(driverA)) setDriverA(race.drivers[0]);
 					if (!race.drivers.includes(driverB)) setDriverB(race.drivers[1]);
@@ -177,27 +186,19 @@ export default function Home() {
 				)}
 
 				{raceData && (
-					<div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 mb-6">
-						<div className="flex flex-col md:flex-row md:justify-between gap-4">
-							<div>
-								<h2 className="text-3xl font-bold">
-									{raceData.event} ({selectedSession})
-								</h2>
+					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+						<div className="lg:col-span-2">
+							<TrackCentricMap trackData={trackOutline} selectedDriver={driverA} />
+						</div>
 
-								<p className="text-zinc-400 mt-2">
-									📍 {raceData.location}, {raceData.country}
-								</p>
-							</div>
-
-							<div>
-								<p className="text-zinc-500 uppercase text-sm">
-									Season
-								</p>
-
-								<p className="text-3xl font-bold">
-									{raceData.year}
-								</p>
-							</div>
+						<div>
+							<DriverGrid
+								drivers={raceData.drivers}
+								activeDriverA={driverA}
+								activeDriverB={driverB}
+								onSelectDriver={setDriverA}
+								onSelectCompareDriver={setDriverB}
+							/>
 						</div>
 					</div>
 				)}
