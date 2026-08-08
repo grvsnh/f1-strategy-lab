@@ -10,6 +10,7 @@ from app.routes.strategy import router as strategy_router
 from app.routes.recommendation import (
     router as recommendation_router,
 )
+from app.routes.schedule import router as schedule_router
 
 app = FastAPI(
     title="F1 Strategy Lab API",
@@ -91,3 +92,5 @@ def delta(
 app.include_router(strategy_router)
 
 app.include_router(recommendation_router)
+
+app.include_router(schedule_router)

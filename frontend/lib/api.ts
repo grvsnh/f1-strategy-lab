@@ -1,5 +1,15 @@
 const API_BASE = "http://localhost:8000";
 
+export async function getSchedule(year: number) {
+	const response = await fetch(`${API_BASE}/schedule/${year}`);
+
+	if (!response.ok) {
+		throw new Error("Failed to fetch schedule");
+	}
+
+	return response.json();
+}
+
 export async function getRace(year: number, grandPrix: string) {
 	const response = await fetch(`${API_BASE}/race/${year}/${grandPrix}`);
 

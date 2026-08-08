@@ -16,6 +16,7 @@ import TrackMap from "../components/TrackMap";
 import LapDeltaChart from "../components/LapDeltaChart";
 import StrategyCard from "../components/StrategyCard";
 import RecommendationCard from "../components/RecommendationCard";
+import RaceSelector from "../components/RaceSelector";
 
 interface RaceData {
 	event: string;
@@ -64,6 +65,9 @@ interface RecommendationData {
 }
 
 export default function Home() {
+	const [selectedYear, setSelectedYear] = useState(2024);
+	const [selectedGrandPrix, setSelectedGrandPrix] = useState("Bahrain");
+
 	const [raceData, setRaceData] = useState<RaceData | null>(null);
 
 	const [telemetryA, setTelemetryA] = useState<TelemetryData | null>(null);
@@ -90,9 +94,14 @@ export default function Home() {
 	useEffect(() => {
 		async function loadRace() {
 			try {
-				const race = await getRace(2024, "Bahrain");
+				setError("");
+				const race = await getRace(selectedYear, selectedGrandPrix);
 
 				setRaceData(race);
+				if (race.drivers && race.drivers.length >= 2) {
+					if (!race.drivers.includes(driverA)) setDriverA(race.drivers[0]);
+					if (!race.drivers.includes(driverB)) setDriverB(race.drivers[1]);
+				}
 			} catch (err) {
 				setError(
 					err instanceof Error ? err.message : "Failed to load race",
@@ -101,20 +110,22 @@ export default function Home() {
 		}
 
 		loadRace();
-	}, []);
+	}, [selectedYear, selectedGrandPrix]);
 
 	useEffect(() => {
 		async function loadAnalytics() {
+			if (!selectedGrandPrix) return;
 			try {
 				setLoading(true);
+				setError("");
 
 				const [dataA, dataB, delta, strategy, recommendation] =
 					await Promise.all([
-						getTelemetry(2024, "Bahrain", driverA),
-						getTelemetry(2024, "Bahrain", driverB),
-						getDelta(2024, "Bahrain", driverA, driverB),
-						getStrategy(2024, "Bahrain", driverA),
-						getRecommendation(2024, "Bahrain", driverA),
+						getTelemetry(selectedYear, selectedGrandPrix, driverA),
+						getTelemetry(selectedYear, selectedGrandPrix, driverB),
+						getDelta(selectedYear, selectedGrandPrix, driverA, driverB),
+						getStrategy(selectedYear, selectedGrandPrix, driverA),
+						getRecommendation(selectedYear, selectedGrandPrix, driverA),
 					]);
 
 				setTelemetryA(dataA);
@@ -134,7 +145,7 @@ export default function Home() {
 		}
 
 		loadAnalytics();
-	}, [driverA, driverB]);
+	}, [selectedYear, selectedGrandPrix, driverA, driverB]);
 
 	return (
 		<main className="min-h-screen bg-black text-white p-6">
@@ -148,6 +159,13 @@ export default function Home() {
 						Telemetry Analysis Workbench
 					</p>
 				</div>
+
+				<RaceSelector
+					selectedYear={selectedYear}
+					selectedGrandPrix={selectedGrandPrix}
+					onYearChange={setSelectedYear}
+					onGrandPrixChange={setSelectedGrandPrix}
+				/>
 
 				{error && (
 					<div className="rounded-2xl border border-red-500 bg-red-950 p-6 mb-6">
@@ -215,7 +233,7 @@ export default function Home() {
 				{telemetryA && telemetryB && deltaData && !loading && (
 					<>
 						<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-							<TrackMap driver={driverA} />
+							<TrackMap driver={driverA} year={selectedYear} grandPrix={selectedGrandPrix} />
 
 							{recommendationData && (
 								<RecommendationCard data={recommendationData} />
