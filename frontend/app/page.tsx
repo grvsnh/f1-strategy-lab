@@ -19,6 +19,7 @@ import RecommendationCard from "../components/RecommendationCard";
 import RaceSelector from "../components/RaceSelector";
 import TrackCentricMap from "../components/TrackCentricMap";
 import DriverGrid from "../components/DriverGrid";
+import DriverIntelligenceModal from "../components/DriverIntelligenceModal";
 import { getTrackOutline } from "../lib/api";
 
 interface RaceData {
@@ -74,6 +75,7 @@ export default function Home() {
 
 	const [raceData, setRaceData] = useState<RaceData | null>(null);
 	const [trackOutline, setTrackOutline] = useState<any>(null);
+	const [intelDriver, setIntelDriver] = useState<string | null>(null);
 
 	const [telemetryA, setTelemetryA] = useState<TelemetryData | null>(null);
 
@@ -198,10 +200,19 @@ export default function Home() {
 								activeDriverB={driverB}
 								onSelectDriver={setDriverA}
 								onSelectCompareDriver={setDriverB}
+								onOpenIntelligence={setIntelDriver}
 							/>
 						</div>
 					</div>
 				)}
+
+				<DriverIntelligenceModal
+					driver={intelDriver}
+					year={selectedYear}
+					grandPrix={selectedGrandPrix}
+					session={selectedSession}
+					onClose={() => setIntelDriver(null)}
+				/>
 
 				{raceData && (
 					<div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 mb-6">
