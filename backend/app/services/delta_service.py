@@ -1,4 +1,5 @@
-import fastf1
+from app.services.session_cache import get_cached_session
+from app.utils.downsample import downsample_list
 
 
 def get_lap_delta(
@@ -8,8 +9,7 @@ def get_lap_delta(
     driver_b: str,
     session_name: str = "R",
 ):
-    session = fastf1.get_session(year, grand_prix, session_name)
-    session.load()
+    session = get_cached_session(year, grand_prix, session_name)
 
     laps_a = session.laps.pick_drivers(driver_a)
     laps_b = session.laps.pick_drivers(driver_b)
@@ -34,10 +34,11 @@ def get_lap_delta(
     speed_b = telemetry_b["Speed"].fillna(0).tolist()[:min_len]
 
     delta = [a - b for a, b in zip(speed_a, speed_b)]
+    samples = list(range(min_len))
 
     return {
         "driver_a": driver_a,
         "driver_b": driver_b,
-        "delta": delta,
-        "samples": list(range(min_len)),
+        "delta": downsample_list(delta),
+        "samples": downsample_list(samples),
     }

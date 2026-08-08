@@ -1,9 +1,8 @@
-import fastf1
+from app.services.session_cache import get_cached_session
 
 
 def get_driver_intelligence(year: int, grand_prix: str, driver: str, session_name: str = "R"):
-    session = fastf1.get_session(year, grand_prix, session_name)
-    session.load()
+    session = get_cached_session(year, grand_prix, session_name)
 
     laps = session.laps.pick_drivers(driver)
     if laps.empty:
@@ -23,18 +22,13 @@ def get_driver_intelligence(year: int, grand_prix: str, driver: str, session_nam
     telemetry = fastest_lap.get_car_data() if fastest_lap is not None else None
     top_speed = float(telemetry["Speed"].max()) if telemetry is not None and not telemetry.empty else 0.0
 
-    # Stint compounds
     compounds = laps["Compound"].dropna().unique().tolist() if "Compound" in laps.columns else []
-
-    # Pit stops count
     pit_stops = len(laps[laps["PitOutTime"].notnull()]) if "PitOutTime" in laps.columns else 0
 
-    # Sector times in seconds
     def format_td(td):
         if td is None or str(td) == "NaT":
             return None
-        total_seconds = td.total_seconds()
-        return round(total_seconds, 3)
+        return round(td.total_seconds(), 3)
 
     return {
         "driver": driver,
