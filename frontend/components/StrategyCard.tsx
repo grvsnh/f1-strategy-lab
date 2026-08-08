@@ -1,5 +1,7 @@
 "use client";
 
+import { memo } from "react";
+
 interface Stint {
 	compound: string;
 	start_lap: number;
@@ -15,7 +17,7 @@ interface StrategyCardProps {
 	data: StrategyData;
 }
 
-export default function StrategyCard({ data }: StrategyCardProps) {
+function StrategyCard({ data }: StrategyCardProps) {
 	function getCompoundColor(compound: string) {
 		switch (compound) {
 			case "SOFT":
@@ -65,3 +67,5 @@ export default function StrategyCard({ data }: StrategyCardProps) {
 		</div>
 	);
 }
+
+export default memo(StrategyCard);

@@ -1,5 +1,7 @@
 "use client";
 
+import { memo } from "react";
+
 export type MetricKey = "speed" | "throttle" | "brake" | "rpm" | "gear" | "drs";
 
 interface MetricSelectorProps {
@@ -7,7 +9,7 @@ interface MetricSelectorProps {
 	onChange: (value: MetricKey) => void;
 }
 
-export default function MetricSelector({
+function MetricSelector({
 	value,
 	onChange,
 }: MetricSelectorProps) {
@@ -18,7 +20,7 @@ export default function MetricSelector({
 			<select
 				value={value}
 				onChange={(e) => onChange(e.target.value as MetricKey)}
-				className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3"
+				className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white"
 			>
 				<option value="speed">Speed</option>
 
@@ -35,3 +37,5 @@ export default function MetricSelector({
 		</div>
 	);
 }
+
+export default memo(MetricSelector);

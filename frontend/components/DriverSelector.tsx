@@ -1,5 +1,7 @@
 "use client";
 
+import { memo } from "react";
+
 interface DriverSelectorProps {
 	label: string;
 	value: string;
@@ -7,7 +9,7 @@ interface DriverSelectorProps {
 	onChange: (value: string) => void;
 }
 
-export default function DriverSelector({
+function DriverSelector({
 	label,
 	value,
 	drivers,
@@ -20,7 +22,7 @@ export default function DriverSelector({
 			<select
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
-				className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3"
+				className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white"
 			>
 				{drivers.map((driver) => (
 					<option key={driver} value={driver}>
@@ -31,3 +33,5 @@ export default function DriverSelector({
 		</div>
 	);
 }
+
+export default memo(DriverSelector);

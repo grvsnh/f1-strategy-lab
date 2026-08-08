@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 interface RecommendationData {
 	driver: string;
 	current_compound: string;
@@ -11,7 +13,7 @@ interface Props {
 	data: RecommendationData;
 }
 
-export default function RecommendationCard({ data }: Props) {
+function RecommendationCard({ data }: Props) {
 	return (
 		<div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8 mb-8">
 			<div className="flex items-center justify-between mb-6">
@@ -62,3 +64,5 @@ export default function RecommendationCard({ data }: Props) {
 		</div>
 	);
 }
+
+export default memo(RecommendationCard);

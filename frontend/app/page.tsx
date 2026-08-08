@@ -21,6 +21,7 @@ import TrackCentricMap from "../components/TrackCentricMap";
 import DriverGrid from "../components/DriverGrid";
 import DriverIntelligenceModal from "../components/DriverIntelligenceModal";
 import MultiDriverComparison from "../components/MultiDriverComparison";
+import { ChartSkeleton } from "../components/Skeletons";
 import { getTrackOutline } from "../lib/api";
 
 interface RaceData {
@@ -250,8 +251,9 @@ export default function Home() {
 				)}
 
 				{loading && (
-					<div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-						Loading analytics...
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+						<ChartSkeleton height={300} />
+						<ChartSkeleton height={300} />
 					</div>
 				)}
 
