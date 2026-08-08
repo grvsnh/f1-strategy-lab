@@ -20,6 +20,7 @@ import RaceSelector from "../components/RaceSelector";
 import TrackCentricMap from "../components/TrackCentricMap";
 import DriverGrid from "../components/DriverGrid";
 import DriverIntelligenceModal from "../components/DriverIntelligenceModal";
+import MultiDriverComparison from "../components/MultiDriverComparison";
 import { getTrackOutline } from "../lib/api";
 
 interface RaceData {
@@ -213,6 +214,15 @@ export default function Home() {
 					session={selectedSession}
 					onClose={() => setIntelDriver(null)}
 				/>
+
+				{raceData && raceData.drivers && (
+					<MultiDriverComparison
+						availableDrivers={raceData.drivers}
+						year={selectedYear}
+						grandPrix={selectedGrandPrix}
+						session={selectedSession}
+					/>
+				)}
 
 				{raceData && (
 					<div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 mb-6">

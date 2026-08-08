@@ -30,6 +30,22 @@ export async function getDriverIntelligence(year: number, grandPrix: string, dri
 	return response.json();
 }
 
+export async function getCompareDrivers(
+	year: number,
+	grandPrix: string,
+	drivers: string[],
+	metrics: string[],
+	session = "R"
+) {
+	const driverParams = drivers.map((d) => `drivers=${encodeURIComponent(d)}`).join("&");
+	const metricParams = metrics.map((m) => `metrics=${encodeURIComponent(m)}`).join("&");
+	const response = await fetch(
+		`${API_BASE}/compare/${year}/${grandPrix}?${driverParams}&${metricParams}&session=${session}`
+	);
+	if (!response.ok) throw new Error("Failed to fetch multi-driver comparison");
+	return response.json();
+}
+
 export async function getTelemetry(year: number, grandPrix: string, driver: string, session = "R") {
 	const response = await fetch(`${API_BASE}/telemetry/${year}/${grandPrix}/${driver}?session=${session}`);
 	if (!response.ok) throw new Error("Failed to fetch telemetry");

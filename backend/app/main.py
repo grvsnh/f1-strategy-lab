@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -6,6 +7,7 @@ from app.services.telemetry_service import get_driver_telemetry
 from app.services.track_service import get_track_map
 from app.services.track_outline_service import get_track_outline
 from app.services.driver_intelligence_service import get_driver_intelligence
+from app.services.comparison_service import get_multi_driver_comparison
 from app.services.delta_service import get_lap_delta
 
 from app.routes.strategy import router as strategy_router
@@ -68,6 +70,17 @@ def driver_intelligence(
     session: str = Query("R"),
 ):
     return get_driver_intelligence(year, grand_prix, driver, session)
+
+
+@app.get("/compare/{year}/{grand_prix}")
+def compare_drivers(
+    year: int,
+    grand_prix: str,
+    drivers: List[str] = Query(...),
+    metrics: List[str] = Query(["speed"]),
+    session: str = Query("R"),
+):
+    return get_multi_driver_comparison(year, grand_prix, drivers, metrics, session)
 
 
 @app.get("/telemetry/{year}/{grand_prix}/{driver}")
