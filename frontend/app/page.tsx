@@ -22,6 +22,8 @@ import DriverGrid from "../components/DriverGrid";
 import DriverIntelligenceModal from "../components/DriverIntelligenceModal";
 import MultiDriverComparison from "../components/MultiDriverComparison";
 import { ChartSkeleton } from "../components/Skeletons";
+import Navbar from "../components/Navbar";
+import ErrorBoundary from "../components/ErrorBoundary";
 import { getTrackOutline } from "../lib/api";
 
 interface RaceData {
@@ -162,18 +164,13 @@ export default function Home() {
 	}, [selectedYear, selectedGrandPrix, selectedSession, driverA, driverB]);
 
 	return (
-		<main className="min-h-screen bg-black text-white p-6">
-			<div className="max-w-7xl mx-auto">
-				<div className="mb-8">
-					<h1 className="text-5xl font-extrabold">
-						🏎️ F1 Strategy Lab
-					</h1>
-
-					<p className="text-zinc-400 mt-2">
-						Telemetry Analysis Workbench
-					</p>
-				</div>
-
+		<div className="min-h-screen bg-black text-white pb-12">
+			<Navbar
+				activeYear={selectedYear}
+				activeGrandPrix={selectedGrandPrix}
+				activeSession={selectedSession}
+			/>
+			<main className="max-w-7xl mx-auto px-6">
 				<RaceSelector
 					selectedYear={selectedYear}
 					selectedGrandPrix={selectedGrandPrix}
@@ -258,7 +255,7 @@ export default function Home() {
 				)}
 
 				{telemetryA && telemetryB && deltaData && !loading && (
-					<>
+					<ErrorBoundary>
 						<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
 							<TrackMap driver={driverA} year={selectedYear} grandPrix={selectedGrandPrix} session={selectedSession} />
 
@@ -282,9 +279,9 @@ export default function Home() {
 							telemetryB={telemetryB}
 							metric={metric}
 						/>
-					</>
+					</ErrorBoundary>
 				)}
-			</div>
-		</main>
+			</main>
+		</div>
 	);
 }
