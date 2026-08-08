@@ -30,6 +30,12 @@ export async function getTrackEvents(year: number, grandPrix: string, session = 
 	return response.json();
 }
 
+export async function getAdvancedRaceAnalytics(year: number, grandPrix: string, session = "R") {
+	const response = await fetch(`${API_BASE}/analytics/advanced/${year}/${grandPrix}?session=${session}`);
+	if (!response.ok) throw new Error("Failed to fetch advanced analytics");
+	return response.json();
+}
+
 export async function getDriverIntelligence(year: number, grandPrix: string, driver: string, session = "R") {
 	const response = await fetch(`${API_BASE}/driver-intelligence/${year}/${grandPrix}/${driver}?session=${session}`);
 	if (!response.ok) throw new Error("Failed to fetch driver intelligence");

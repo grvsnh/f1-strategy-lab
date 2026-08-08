@@ -23,6 +23,7 @@ import DriverIntelligenceModal from "../components/DriverIntelligenceModal";
 import MultiDriverComparison from "../components/MultiDriverComparison";
 import RaceReplay from "../components/RaceReplay";
 import TrackIntelligencePanel from "../components/TrackIntelligencePanel";
+import AdvancedRaceAnalytics from "../components/AdvancedRaceAnalytics";
 import { ChartSkeleton } from "../components/Skeletons";
 import Navbar from "../components/Navbar";
 import ErrorBoundary from "../components/ErrorBoundary";
@@ -215,6 +216,11 @@ export default function Home() {
 							session={selectedSession}
 						/>
 						<TrackIntelligencePanel
+							year={selectedYear}
+							grandPrix={selectedGrandPrix}
+							session={selectedSession}
+						/>
+						<AdvancedRaceAnalytics
 							year={selectedYear}
 							grandPrix={selectedGrandPrix}
 							session={selectedSession}
