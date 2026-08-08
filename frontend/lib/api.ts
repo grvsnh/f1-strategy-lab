@@ -6,6 +6,12 @@ export async function getSchedule(year: number) {
 	return response.json();
 }
 
+export async function getAllRaces() {
+	const response = await fetch(`${API_BASE}/races/all`);
+	if (!response.ok) throw new Error("Failed to fetch all races");
+	return response.json();
+}
+
 export async function getSessions(year: number, grandPrix: string) {
 	const response = await fetch(`${API_BASE}/sessions/${year}/${grandPrix}`);
 	if (!response.ok) throw new Error("Failed to fetch sessions");
