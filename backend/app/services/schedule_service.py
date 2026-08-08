@@ -28,7 +28,8 @@ def get_schedule(year: int) -> List[Dict[str, Any]]:
 @lru_cache(maxsize=1)
 def get_all_races() -> List[Dict[str, Any]]:
     all_events = []
-    for yr in [2024, 2023, 2022, 2021]:
+    # 2026 current season down to 2021
+    for yr in [2026, 2025, 2024, 2023, 2022, 2021]:
         try:
             events = get_schedule(yr)
             all_events.extend(events)

@@ -21,7 +21,7 @@ interface RaceSelectorProps {
 	onSessionChange: (session: string) => void;
 }
 
-const AVAILABLE_YEARS = [2024, 2023, 2022, 2021];
+const AVAILABLE_YEARS = [2026, 2025, 2024, 2023, 2022, 2021];
 const SESSIONS = [
 	{ code: "FP1", label: "FP1" },
 	{ code: "FP2", label: "FP2" },
