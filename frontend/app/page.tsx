@@ -26,6 +26,7 @@ import TrackIntelligencePanel from "../components/TrackIntelligencePanel";
 import AdvancedRaceAnalytics from "../components/AdvancedRaceAnalytics";
 import HeroRaceSearchLanding from "../components/HeroRaceSearchLanding";
 import MotionPathLoader from "../components/MotionPathLoader";
+import SessionSelector from "../components/SessionSelector";
 import { ChartSkeleton } from "../components/Skeletons";
 import ErrorBoundary from "../components/ErrorBoundary";
 
@@ -75,18 +76,10 @@ interface RecommendationData {
 	message: string;
 }
 
-const SESSIONS = [
-	{ code: "FP1", label: "FP1" },
-	{ code: "FP2", label: "FP2" },
-	{ code: "FP3", label: "FP3" },
-	{ code: "Q", label: "QUALIFYING" },
-	{ code: "S", label: "SPRINT" },
-	{ code: "R", label: "RACE" },
-];
-
 export default function Home() {
 	const [hasActiveSelection, setHasActiveSelection] = useState(false);
 	const [isAnimatingLoader, setIsAnimatingLoader] = useState(false);
+	const [isDataReady, setIsDataReady] = useState(false);
 
 	const [selectedYear, setSelectedYear] = useState(2026);
 	const [selectedGrandPrix, setSelectedGrandPrix] = useState("Bahrain Grand Prix");
@@ -123,6 +116,7 @@ export default function Home() {
 		setSelectedGrandPrix(grandPrix);
 		setSelectedLocation(location || grandPrix);
 		setSelectedSession("R");
+		setIsDataReady(false);
 		setIsAnimatingLoader(true);
 	};
 
@@ -149,10 +143,12 @@ export default function Home() {
 					if (!race.drivers.includes(driverA)) setDriverA(race.drivers[0]);
 					if (!race.drivers.includes(driverB)) setDriverB(race.drivers[1]);
 				}
+				setIsDataReady(true);
 			} catch (err) {
 				setError(
 					err instanceof Error ? err.message : "Failed to load race",
 				);
+				setIsDataReady(true);
 			}
 		}
 
@@ -197,12 +193,13 @@ export default function Home() {
 
 	return (
 		<div className="min-h-screen bg-black text-white font-mono">
-			{/* Motion Path F1 Circuit Animation Screen */}
+			{/* Motion Path F1 Circuit Animation Screen - Stays until data is ready */}
 			{isAnimatingLoader && (
 				<MotionPathLoader
 					raceName={selectedGrandPrix}
 					location={selectedLocation}
 					year={selectedYear}
+					isDataReady={isDataReady}
 					onComplete={handleLoaderComplete}
 				/>
 			)}
@@ -211,47 +208,36 @@ export default function Home() {
 			{!hasActiveSelection ? (
 				<HeroRaceSearchLanding onSelectRace={handleSelectRaceFromLanding} />
 			) : (
-				<div className="pb-12 pt-6">
-					{/* OVERHAULED RACE WORKBENCH HEADER: No Navbar, Clean Controls */}
-					<header className="max-w-7xl mx-auto px-6 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
+				<div className="pb-16 pt-6">
+					{/* OVERHAULED RACE WORKBENCH HEADER: Larger, Mobile Responsive, Modular SessionSelector */}
+					<header className="max-w-7xl mx-auto px-4 sm:px-6 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
 						<div className="flex items-center gap-4">
 							<button
 								onClick={() => setHasActiveSelection(false)}
-								className="bg-zinc-900 hover:bg-emerald-500 hover:text-black border border-zinc-800 text-zinc-300 px-3.5 py-2 rounded-xl text-xs font-bold transition uppercase flex items-center gap-1.5 shadow-lg"
+								className="bg-zinc-900 hover:bg-emerald-500 hover:text-black border border-zinc-800 text-zinc-300 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition uppercase flex items-center gap-2 shadow-xl active:scale-95 touch-manipulation"
 							>
 								← BACK TO RACES
 							</button>
 							<div>
-								<h2 className="text-xl font-bold uppercase text-white tracking-wide">
+								<h2 className="text-xl sm:text-3xl font-black uppercase text-white tracking-wide">
 									{selectedYear} {selectedGrandPrix}
 								</h2>
-								<p className="text-[11px] text-zinc-500 font-medium uppercase">
-									📍 {selectedLocation} • TELEMETRY LAB
+								<p className="text-xs sm:text-sm text-zinc-400 font-bold uppercase mt-0.5">
+									📍 {selectedLocation} • LIVE TELEMETRY LAB
 								</p>
 							</div>
 						</div>
 
-						{/* Session Pills */}
-						<div className="flex gap-1.5 bg-zinc-900/90 p-1.5 rounded-xl border border-zinc-800">
-							{SESSIONS.map((s) => (
-								<button
-									key={s.code}
-									onClick={() => setSelectedSession(s.code)}
-									className={`px-3 py-1.5 text-xs font-bold rounded-lg transition uppercase ${
-										selectedSession === s.code
-											? "bg-emerald-500 text-black shadow-md"
-											: "text-zinc-400 hover:text-white hover:bg-zinc-800"
-									}`}
-								>
-									{s.label}
-								</button>
-							))}
-						</div>
+						{/* Modular Premium Session Selector */}
+						<SessionSelector
+							selectedSession={selectedSession}
+							onSessionChange={setSelectedSession}
+						/>
 					</header>
 
-					<main className="max-w-7xl mx-auto px-6">
+					<main className="max-w-7xl mx-auto px-4 sm:px-6">
 						{error && (
-							<div className="border border-red-800 bg-red-950/60 p-4 rounded-xl mb-6 text-red-300 font-mono text-xs uppercase">
+							<div className="border border-red-800 bg-red-950/60 p-4 rounded-2xl mb-6 text-red-300 font-mono text-xs sm:text-sm uppercase">
 								⚠️ {error}
 							</div>
 						)}
@@ -282,10 +268,10 @@ export default function Home() {
 
 								{/* RIGHT SIDE: Driver Telemetry Controls & Pit Recommendation */}
 								<div className="lg:col-span-4 space-y-4">
-									<div className="border border-zinc-800/80 bg-zinc-900/60 rounded-2xl p-4">
-										<h4 className="text-xs font-bold uppercase text-white mb-3 flex items-center justify-between border-b border-zinc-800 pb-2">
+									<div className="border border-zinc-800/80 bg-zinc-900/60 rounded-2xl p-5 shadow-xl">
+										<h4 className="text-xs sm:text-sm font-bold uppercase text-white mb-4 flex items-center justify-between border-b border-zinc-800 pb-3">
 											<span>ACTIVE DRIVER ANALYTICS</span>
-											<span className="bg-emerald-500 text-black text-xs px-2 py-0.5 rounded font-black">
+											<span className="bg-emerald-500 text-black text-xs px-2.5 py-0.5 rounded-lg font-black">
 												{driverA}
 											</span>
 										</h4>
@@ -297,7 +283,7 @@ export default function Home() {
 											onChange={setDriverA}
 										/>
 
-										<div className="mt-3">
+										<div className="mt-4">
 											<DriverSelector
 												label="COMPARISON DRIVER (B)"
 												value={driverB}
@@ -306,7 +292,7 @@ export default function Home() {
 											/>
 										</div>
 
-										<div className="mt-3">
+										<div className="mt-4">
 											<MetricSelector
 												value={metric}
 												onChange={setMetric}
@@ -361,8 +347,8 @@ export default function Home() {
 
 						{loading && (
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
-								<ChartSkeleton height={300} />
-								<ChartSkeleton height={300} />
+								<ChartSkeleton height={320} />
+								<ChartSkeleton height={320} />
 							</div>
 						)}
 
