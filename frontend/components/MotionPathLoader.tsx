@@ -36,11 +36,11 @@ export default function MotionPathLoader({
 		let animPath: any;
 
 		try {
-			// Continuous motion path car animation along the track coordinates
+			// Fast smooth motion path animation along the track coordinates
 			animCar = animate(".f1-car-dot", {
 				ease: "linear",
-				duration: 2000,
-				loop: true,
+				duration: 1500,
+				loop: false,
 				...svg.createMotionPath("#circuit-motion-path"),
 			});
 
@@ -48,22 +48,19 @@ export default function MotionPathLoader({
 			animPath = animate(svg.createDrawable("#circuit-motion-path"), {
 				draw: "0 1",
 				ease: "linear",
-				duration: 1800,
-				loop: true,
+				duration: 1400,
+				loop: false,
 			});
 		} catch (err) {
 			console.log("Animation loop fallback");
 		}
 
-		const interval = setInterval(() => {
-			if (isDataReadyRef.current && onComplete) {
-				clearInterval(interval);
-				setTimeout(() => onComplete(), 300);
-			}
-		}, 200);
+		const timeout = setTimeout(() => {
+			if (onComplete) onComplete();
+		}, 1500);
 
 		return () => {
-			clearInterval(interval);
+			clearTimeout(timeout);
 			if (animCar) animCar.pause();
 			if (animPath) animPath.pause();
 		};
@@ -127,7 +124,7 @@ export default function MotionPathLoader({
 
 				<div className="absolute bottom-4 right-6 text-xs text-[var(--text-secondary)] font-bold uppercase flex items-center gap-2">
 					<span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-emerald)] animate-ping"></span>
-					Syncing Sensors...
+					Syncing Circuit Sensors...
 				</div>
 			</div>
 		</div>

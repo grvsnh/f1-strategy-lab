@@ -1,12 +1,70 @@
+import json
 import math
-from app.services.session_cache import get_cached_session
+from pathlib import Path
 from app.utils.downsample import downsample_list
 
+GEOJSON_PATH = Path(__file__).resolve().parents[2] / "f1-circuits.geojson"
 
-def generate_fallback_outline(grand_prix: str, year: int):
+CIRCUITS_CACHE = {}
+
+def load_circuits():
+    if CIRCUITS_CACHE:
+        return CIRCUITS_CACHE
+    if not GEOJSON_PATH.exists():
+        return CIRCUITS_CACHE
+
+    try:
+        with open(GEOJSON_PATH, "r") as f:
+            data = json.load(f)
+        for feat in data.get("features", []):
+            props = feat.get("properties", {})
+            loc = props.get("Location", "")
+            coords = feat.get("geometry", {}).get("coordinates", [])
+            if loc and coords:
+                CIRCUITS_CACHE[loc.lower()] = {
+                    "circuit": props.get("Name", loc),
+                    "location": loc,
+                    "coords": coords,
+                }
+    except Exception as e:
+        print(f"Error loading f1-circuits.geojson: {e}")
+    return CIRCUITS_CACHE
+
+
+def get_track_outline(year: int, grand_prix: str, session_name: str = "R"):
+    """
+    Instant 0ms track outline generator using offline bacinger/f1-circuits GeoJSON dataset.
+    Never triggers FastF1 network downloads or position logs.
+    """
+    circuits = load_circuits()
+    gp_lower = grand_prix.lower()
+
+    matched = None
+    for loc_key, c_data in circuits.items():
+        if loc_key in gp_lower or gp_lower in loc_key or c_data["circuit"].lower() in gp_lower:
+            matched = c_data
+            break
+
+    if matched and matched["coords"]:
+        coords = matched["coords"]
+        x = [c[0] for c in coords]
+        y = [c[1] for c in coords]
+        # Generate simulated speed vector for color grading
+        speed = [180 + 80 * math.sin(i / 10.0) for i in range(len(x))]
+        return {
+            "circuit": matched["circuit"],
+            "location": matched["location"],
+            "year": year,
+            "x": downsample_list(x),
+            "y": downsample_list(y),
+            "speed": [round(s, 1) for s in downsample_list(speed)],
+            "driver": "REF",
+        }
+
+    # Fallback parametric circuit curve
     x, y, speed = [], [], []
-    for i in range(350):
-        angle = (i / 350.0) * 2 * math.pi
+    for i in range(250):
+        angle = (i / 250.0) * 2 * math.pi
         r = 5000 + 1500 * math.sin(3 * angle) + 800 * math.cos(5 * angle)
         x.append(r * math.cos(angle))
         y.append(r * math.sin(angle))
@@ -21,32 +79,3 @@ def generate_fallback_outline(grand_prix: str, year: int):
         "speed": [round(v, 1) for v in speed],
         "driver": "REF",
     }
-
-
-def get_track_outline(year: int, grand_prix: str, session_name: str = "R"):
-    try:
-        session = get_cached_session(year, grand_prix, session_name)
-        fastest_lap = session.laps.pick_fastest()
-
-        if fastest_lap is not None and not fastest_lap.empty:
-            pos = fastest_lap.get_pos_data()
-            tel = fastest_lap.get_car_data()
-
-            min_len = min(len(pos), len(tel))
-            x = pos["X"].fillna(0).tolist()[:min_len]
-            y = pos["Y"].fillna(0).tolist()[:min_len]
-            speed = tel["Speed"].fillna(0).tolist()[:min_len]
-
-            return {
-                "circuit": session.event["EventName"],
-                "location": session.event["Location"],
-                "year": year,
-                "x": downsample_list(x),
-                "y": downsample_list(y),
-                "speed": downsample_list(speed),
-                "driver": str(fastest_lap["Driver"]),
-            }
-    except Exception as e:
-        print(f"FastF1 track outline fallback: {e}")
-
-    return generate_fallback_outline(grand_prix, year)
