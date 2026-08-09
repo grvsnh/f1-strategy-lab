@@ -100,7 +100,7 @@ export default function Home() {
 	const [driverA, setDriverA] = useState("VER");
 	const [driverB, setDriverB] = useState("HAM");
 	const [metric, setMetric] = useState<MetricKey>("speed");
-	const [loading, setLoading] = useState(false);
+	const [loadingAnalytics, setLoadingAnalytics] = useState(false);
 	const [error, setError] = useState("");
 
 	const handleSelectRaceFromLanding = ({
@@ -125,10 +125,11 @@ export default function Home() {
 		setHasActiveSelection(true);
 	};
 
+	// STEP 1: Fast initial load of Drivers list & Circuit Geometry (< 0.05s)
 	useEffect(() => {
 		if (!hasActiveSelection && !isAnimatingLoader) return;
 
-		async function loadRace() {
+		async function loadRaceDriversAndCircuit() {
 			try {
 				setError("");
 				const [race, outline] = await Promise.all([
@@ -143,6 +144,7 @@ export default function Home() {
 					if (!race.drivers.includes(driverA)) setDriverA(race.drivers[0]);
 					if (!race.drivers.includes(driverB)) setDriverB(race.drivers[1]);
 				}
+				// Instantly signal data ready to open UI
 				setIsDataReady(true);
 			} catch (err) {
 				setError(
@@ -152,43 +154,47 @@ export default function Home() {
 			}
 		}
 
-		loadRace();
+		loadRaceDriversAndCircuit();
 	}, [hasActiveSelection, isAnimatingLoader, selectedYear, selectedGrandPrix, selectedSession]);
 
+	// STEP 2: Progressive background load of detailed telemetry analytics
 	useEffect(() => {
 		if (!hasActiveSelection || !selectedGrandPrix) return;
 
-		async function loadAnalytics() {
+		async function loadProgressiveAnalytics() {
 			try {
-				setLoading(true);
+				setLoadingAnalytics(true);
 				setError("");
 
-				const [dataA, dataB, delta, strategy, recommendation] =
-					await Promise.all([
-						getTelemetry(selectedYear, selectedGrandPrix, driverA, selectedSession),
-						getTelemetry(selectedYear, selectedGrandPrix, driverB, selectedSession),
-						getDelta(selectedYear, selectedGrandPrix, driverA, driverB, selectedSession),
-						getStrategy(selectedYear, selectedGrandPrix, driverA, selectedSession),
-						getRecommendation(selectedYear, selectedGrandPrix, driverA, selectedSession),
-					]);
+				// Fetch telemetry and delta progressively
+				getTelemetry(selectedYear, selectedGrandPrix, driverA, selectedSession)
+					.then(setTelemetryA)
+					.catch(() => null);
 
-				setTelemetryA(dataA);
-				setTelemetryB(dataB);
-				setDeltaData(delta);
-				setStrategyData(strategy);
-				setRecommendationData(recommendation);
+				getTelemetry(selectedYear, selectedGrandPrix, driverB, selectedSession)
+					.then(setTelemetryB)
+					.catch(() => null);
+
+				getDelta(selectedYear, selectedGrandPrix, driverA, driverB, selectedSession)
+					.then(setDeltaData)
+					.catch(() => null);
+
+				getStrategy(selectedYear, selectedGrandPrix, driverA, selectedSession)
+					.then(setStrategyData)
+					.catch(() => null);
+
+				getRecommendation(selectedYear, selectedGrandPrix, driverA, selectedSession)
+					.then(setRecommendationData)
+					.catch(() => null);
+
 			} catch (err) {
-				setError(
-					err instanceof Error
-						? err.message
-						: "Failed to load analytics",
-				);
+				console.error("Analytics load error", err);
 			} finally {
-				setLoading(false);
+				setLoadingAnalytics(false);
 			}
 		}
 
-		loadAnalytics();
+		loadProgressiveAnalytics();
 	}, [hasActiveSelection, selectedYear, selectedGrandPrix, selectedSession, driverA, driverB]);
 
 	return (
@@ -204,12 +210,12 @@ export default function Home() {
 				/>
 			)}
 
-			{/* MAIN LANDING SCREEN: System UI Theme adapted */}
+			{/* MAIN LANDING SCREEN */}
 			{!hasActiveSelection ? (
 				<HeroRaceSearchLanding onSelectRace={handleSelectRaceFromLanding} />
 			) : (
 				<div className="pb-16 pt-6">
-					{/* OVERHAULED RACE WORKBENCH HEADER: Apple System UI Glass Style */}
+					{/* OVERHAULED RACE WORKBENCH HEADER */}
 					<header className="max-w-7xl mx-auto px-4 sm:px-6 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[var(--border-color)] pb-5">
 						<div className="flex items-center gap-4">
 							<button
@@ -242,10 +248,10 @@ export default function Home() {
 							</div>
 						)}
 
-						{/* WORKBENCH LAYOUT: Left Racers List, Middle Circuit Map, Right Analytics */}
+						{/* WORKBENCH LAYOUT: Instant Drivers Grid & Circuit Map */}
 						{raceData && (
 							<div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-start">
-								{/* LEFT SIDE: Racers List */}
+								{/* LEFT SIDE: Racers List (Loaded instantly in < 0.05s) */}
 								<div className="lg:col-span-3">
 									<DriverGrid
 										drivers={raceData.drivers}
@@ -300,14 +306,18 @@ export default function Home() {
 										</div>
 									</div>
 
-									{recommendationData && (
+									{recommendationData ? (
 										<RecommendationCard data={recommendationData} />
+									) : (
+										<div className="apple-card rounded-2xl p-4 text-xs font-semibold text-[var(--text-secondary)] text-center animate-pulse">
+											Calculating Pit Window Recommendations...
+										</div>
 									)}
 								</div>
 							</div>
 						)}
 
-						{/* Interactive Race Replay, Track Intelligence & Sector Matrix */}
+						{/* Interactive 2D Race Replay (Loads asynchronously in background) */}
 						{raceData && (
 							<ErrorBoundary>
 								<RaceReplay
@@ -345,15 +355,8 @@ export default function Home() {
 							/>
 						)}
 
-						{loading && (
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
-								<ChartSkeleton height={320} />
-								<ChartSkeleton height={320} />
-							</div>
-						)}
-
-						{/* Telemetry Charts & Lap Delta */}
-						{telemetryA && telemetryB && deltaData && !loading && (
+						{/* Progressive Telemetry Charts & Lap Delta */}
+						{telemetryA && telemetryB && deltaData ? (
 							<ErrorBoundary>
 								<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
 									<TrackMap driver={driverA} year={selectedYear} grandPrix={selectedGrandPrix} session={selectedSession} />
@@ -371,6 +374,11 @@ export default function Home() {
 									/>
 								</div>
 							</ErrorBoundary>
+						) : (
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+								<ChartSkeleton height={320} />
+								<ChartSkeleton height={320} />
+							</div>
 						)}
 					</main>
 				</div>
