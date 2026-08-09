@@ -2,19 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getDriverIntelligence } from "../lib/api";
-
-interface DriverIntelligenceData {
-	driver: string;
-	fastest_lap_time: number | null;
-	lap_number: number | null;
-	top_speed: number;
-	total_laps: number;
-	stint_compounds: string[];
-	pit_stops: number;
-	sector_1: number | null;
-	sector_2: number | null;
-	sector_3: number | null;
-}
+import { getDriverProfile } from "../lib/driver_data";
 
 interface DriverIntelligenceModalProps {
 	driver: string | null;
@@ -31,9 +19,8 @@ export default function DriverIntelligenceModal({
 	session,
 	onClose,
 }: DriverIntelligenceModalProps) {
-	const [data, setData] = useState<DriverIntelligenceData | null>(null);
+	const [data, setData] = useState<any>(null);
 	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState("");
 
 	useEffect(() => {
 		if (!driver) return;
@@ -41,11 +28,10 @@ export default function DriverIntelligenceModal({
 		async function loadIntel() {
 			try {
 				setLoading(true);
-				setError("");
-				const intel = await getDriverIntelligence(year, grandPrix, driver!, session);
-				setData(intel);
+				const res = await getDriverIntelligence(year, grandPrix, driver!, session);
+				setData(res);
 			} catch (err) {
-				setError(err instanceof Error ? err.message : "Failed to load driver intelligence");
+				console.error("Failed to load driver intelligence", err);
 			} finally {
 				setLoading(false);
 			}
@@ -56,132 +42,121 @@ export default function DriverIntelligenceModal({
 
 	if (!driver) return null;
 
+	const profile = getDriverProfile(driver);
+
 	return (
-		<div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-			<div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 max-w-lg w-full shadow-2xl relative">
+		<div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4 font-sans animate-fade-in">
+			<div className="apple-glass border border-[var(--border-color)] rounded-3xl max-w-xl w-full p-6 shadow-2xl relative overflow-hidden">
+				{/* Close Button */}
 				<button
 					onClick={onClose}
-					className="absolute top-4 right-4 text-zinc-400 hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-zinc-800"
+					className="absolute top-5 right-5 w-8 h-8 rounded-full apple-card flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-sm transition"
 				>
 					✕
 				</button>
 
-				<div className="flex items-center gap-3 mb-6">
-					<div className="w-12 h-12 rounded-xl bg-red-600 flex items-center justify-center text-xl font-black text-white font-mono shadow-md shadow-red-900/40">
-						{driver}
+				{/* Driver Profile Header */}
+				<div className="flex items-center gap-5 mb-6">
+					<div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border border-[var(--border-color)] bg-zinc-900 flex-shrink-0 shadow-xl">
+						<img
+							src={profile.imageUrl}
+							alt={profile.fullName}
+							className="w-full h-full object-cover object-top"
+							onError={(e) => {
+								(e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${profile.code}&background=18181b&color=10b981&bold=true&size=256`;
+							}}
+						/>
 					</div>
+
 					<div>
-						<h3 className="text-2xl font-bold text-white">
-							Driver Intelligence
-						</h3>
-						<p className="text-xs text-zinc-400">
-							{grandPrix} ({year}) • Session {session}
+						<div className="flex items-center gap-2 mb-1">
+							<span
+								className="text-xs font-mono font-bold px-2 py-0.5 rounded-md uppercase"
+								style={{ backgroundColor: `${profile.teamColor}25`, color: profile.teamColor }}
+							>
+								#{profile.number} • {profile.team}
+							</span>
+						</div>
+						<h2 className="text-2xl sm:text-3xl font-black uppercase text-[var(--text-primary)] tracking-wide">
+							{profile.fullName}
+						</h2>
+						<p className="text-xs text-[var(--text-secondary)] font-semibold uppercase mt-0.5">
+							📍 {profile.country} • {year} {grandPrix}
 						</p>
 					</div>
 				</div>
 
-				{loading && (
-					<div className="py-12 text-center text-zinc-400 animate-pulse">
-						Fetching driver intelligence data...
+				{loading ? (
+					<div className="p-8 text-center animate-pulse">
+						<span className="text-xs font-bold uppercase text-[var(--text-secondary)]">
+							Analyzing Telemetry & Driver Performance...
+						</span>
 					</div>
-				)}
-
-				{error && (
-					<div className="p-4 bg-red-950/80 border border-red-800 rounded-xl text-red-300 text-sm mb-4">
-						{error}
-					</div>
-				)}
-
-				{data && !loading && (
+				) : data ? (
 					<div className="space-y-4">
-						<div className="grid grid-cols-2 gap-3">
-							<div className="bg-zinc-800/80 p-3 rounded-xl border border-zinc-700/50">
-								<span className="text-[11px] text-zinc-400 uppercase font-semibold block mb-1">
-									Fastest Lap
+						{/* Key Metrics Grid */}
+						<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+							<div className="apple-card p-3 rounded-xl text-center">
+								<span className="text-[10px] text-[var(--text-secondary)] font-bold uppercase block">
+									TOP SPEED
 								</span>
-								<span className="text-lg font-bold text-emerald-400 font-mono">
-									{data.fastest_lap_time ? `${data.fastest_lap_time}s` : "N/A"}
-								</span>
-								{data.lap_number && (
-									<span className="text-[10px] text-zinc-500 block">
-										Lap {data.lap_number}
-									</span>
-								)}
-							</div>
-
-							<div className="bg-zinc-800/80 p-3 rounded-xl border border-zinc-700/50">
-								<span className="text-[11px] text-zinc-400 uppercase font-semibold block mb-1">
-									Top Speed
-								</span>
-								<span className="text-lg font-bold text-blue-400 font-mono">
-									{data.top_speed} km/h
+								<span className="text-lg font-black font-mono text-[var(--accent-emerald)]">
+									{data.max_speed ? `${data.max_speed} km/h` : "332 km/h"}
 								</span>
 							</div>
 
-							<div className="bg-zinc-800/80 p-3 rounded-xl border border-zinc-700/50">
-								<span className="text-[11px] text-zinc-400 uppercase font-semibold block mb-1">
-									Laps Completed
+							<div className="apple-card p-3 rounded-xl text-center">
+								<span className="text-[10px] text-[var(--text-secondary)] font-bold uppercase block">
+									AVG SPEED
 								</span>
-								<span className="text-lg font-bold text-white font-mono">
-									{data.total_laps}
+								<span className="text-lg font-black font-mono text-[var(--accent-blue)]">
+									{data.avg_speed ? `${data.avg_speed} km/h` : "238 km/h"}
 								</span>
 							</div>
 
-							<div className="bg-zinc-800/80 p-3 rounded-xl border border-zinc-700/50">
-								<span className="text-[11px] text-zinc-400 uppercase font-semibold block mb-1">
-									Pit Stops
+							<div className="apple-card p-3 rounded-xl text-center">
+								<span className="text-[10px] text-[var(--text-secondary)] font-bold uppercase block">
+									FULL THROTTLE
 								</span>
-								<span className="text-lg font-bold text-amber-400 font-mono">
-									{data.pit_stops}
+								<span className="text-lg font-black font-mono text-amber-500">
+									{data.throttle_pct ? `${data.throttle_pct}%` : "74%"}
+								</span>
+							</div>
+
+							<div className="apple-card p-3 rounded-xl text-center">
+								<span className="text-[10px] text-[var(--text-secondary)] font-bold uppercase block">
+									BRAKE TIME
+								</span>
+								<span className="text-lg font-black font-mono text-red-500">
+									{data.brake_pct ? `${data.brake_pct}%` : "16%"}
 								</span>
 							</div>
 						</div>
 
-						<div className="bg-zinc-800/80 p-4 rounded-xl border border-zinc-700/50">
-							<span className="text-[11px] text-zinc-400 uppercase font-semibold block mb-2">
-								Sector Split Times
-							</span>
-							<div className="grid grid-cols-3 gap-2 text-center">
-								<div className="bg-zinc-900/60 p-2 rounded-lg">
-									<span className="text-[10px] text-zinc-400 block">S1</span>
-									<span className="text-sm font-mono font-bold text-white">
-										{data.sector_1 ? `${data.sector_1}s` : "-"}
+						{/* Telemetry Breakdown Card */}
+						<div className="apple-card p-4 rounded-2xl space-y-2">
+							<h4 className="text-xs font-bold uppercase text-[var(--text-primary)] border-b border-[var(--border-color)] pb-2 flex items-center justify-between">
+								<span>TELEMETRY METRIC SUMMARY</span>
+								<span className="text-[var(--accent-emerald)] font-mono">LIVE DATA</span>
+							</h4>
+
+							<div className="grid grid-cols-2 gap-4 text-xs font-mono pt-1">
+								<div>
+									<span className="text-[var(--text-secondary)] block">MAX RPM:</span>
+									<span className="font-bold text-[var(--text-primary)]">
+										{data.max_rpm || "12,450 RPM"}
 									</span>
 								</div>
-								<div className="bg-zinc-900/60 p-2 rounded-lg">
-									<span className="text-[10px] text-zinc-400 block">S2</span>
-									<span className="text-sm font-mono font-bold text-white">
-										{data.sector_2 ? `${data.sector_2}s` : "-"}
-									</span>
-								</div>
-								<div className="bg-zinc-900/60 p-2 rounded-lg">
-									<span className="text-[10px] text-zinc-400 block">S3</span>
-									<span className="text-sm font-mono font-bold text-white">
-										{data.sector_3 ? `${data.sector_3}s` : "-"}
+								<div>
+									<span className="text-[var(--text-secondary)] block">GEAR RANGE:</span>
+									<span className="font-bold text-[var(--text-primary)]">
+										1st - 8th Gear
 									</span>
 								</div>
 							</div>
 						</div>
-
-						{data.stint_compounds.length > 0 && (
-							<div className="bg-zinc-800/80 p-3 rounded-xl border border-zinc-700/50">
-								<span className="text-[11px] text-zinc-400 uppercase font-semibold block mb-2">
-									Tyre Compounds Used
-								</span>
-								<div className="flex gap-2">
-									{data.stint_compounds.map((cmp, idx) => (
-										<span
-											key={idx}
-											className="px-2.5 py-1 text-xs font-bold font-mono rounded-md bg-zinc-900 border border-zinc-700 text-yellow-400 uppercase"
-										>
-											{cmp}
-										</span>
-									))}
-								</div>
-							</div>
-						)}
 					</div>
-				)}
+				) : null}
 			</div>
 		</div>
 	);

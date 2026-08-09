@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import { getDriverProfile } from "../lib/driver_data";
 
 interface DriverSelectorProps {
 	label: string;
@@ -17,18 +18,23 @@ function DriverSelector({
 }: DriverSelectorProps) {
 	return (
 		<div>
-			<label className="block mb-2 text-zinc-400">{label}</label>
+			<label className="block mb-1.5 text-xs font-bold uppercase text-[var(--text-secondary)]">
+				{label}
+			</label>
 
 			<select
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
-				className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white"
+				className="w-full apple-glass text-[var(--text-primary)] font-sans text-xs sm:text-sm font-semibold p-3 rounded-xl focus:outline-none border border-[var(--border-color)] cursor-pointer"
 			>
-				{drivers.map((driver) => (
-					<option key={driver} value={driver}>
-						{driver}
-					</option>
-				))}
+				{drivers.map((drvCode) => {
+					const profile = getDriverProfile(drvCode);
+					return (
+						<option key={drvCode} value={drvCode} className="bg-zinc-900 text-white">
+							{profile.fullName} (#{profile.number} • {profile.team})
+						</option>
+					);
+				})}
 			</select>
 		</div>
 	);
