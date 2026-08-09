@@ -97,8 +97,9 @@ export default function Home() {
 	const [recommendationData, setRecommendationData] =
 		useState<RecommendationData | null>(null);
 
-	const [driverA, setDriverA] = useState("VER");
-	const [driverB, setDriverB] = useState("HAM");
+	// Empty initial driver selection for clean, light initial page load
+	const [driverA, setDriverA] = useState("");
+	const [driverB, setDriverB] = useState("");
 	const [metric, setMetric] = useState<MetricKey>("speed");
 	const [loadingAnalytics, setLoadingAnalytics] = useState(false);
 	const [error, setError] = useState("");
@@ -116,6 +117,13 @@ export default function Home() {
 		setSelectedGrandPrix(grandPrix);
 		setSelectedLocation(location || grandPrix);
 		setSelectedSession("R");
+		setDriverA("");
+		setDriverB("");
+		setTelemetryA(null);
+		setTelemetryB(null);
+		setDeltaData(null);
+		setStrategyData(null);
+		setRecommendationData(null);
 		setIsDataReady(false);
 		setIsAnimatingLoader(true);
 	};
@@ -139,12 +147,6 @@ export default function Home() {
 
 				setRaceData(race);
 				setTrackOutline(outline);
-
-				if (race.drivers && race.drivers.length >= 2) {
-					if (!race.drivers.includes(driverA)) setDriverA(race.drivers[0]);
-					if (!race.drivers.includes(driverB)) setDriverB(race.drivers[1]);
-				}
-				// Instantly signal data ready to open UI
 				setIsDataReady(true);
 			} catch (err) {
 				setError(
@@ -157,27 +159,30 @@ export default function Home() {
 		loadRaceDriversAndCircuit();
 	}, [hasActiveSelection, isAnimatingLoader, selectedYear, selectedGrandPrix, selectedSession]);
 
-	// STEP 2: Progressive background load of detailed telemetry analytics
+	// STEP 2: On-Demand Telemetry Loading - Only loads when driverA is selected by user
 	useEffect(() => {
-		if (!hasActiveSelection || !selectedGrandPrix) return;
+		if (!hasActiveSelection || !selectedGrandPrix || !driverA) return;
 
 		async function loadProgressiveAnalytics() {
 			try {
 				setLoadingAnalytics(true);
 				setError("");
 
-				// Fetch telemetry and delta progressively
+				const targetB = driverB || (raceData?.drivers?.find((d) => d !== driverA) || "HAM");
+
 				getTelemetry(selectedYear, selectedGrandPrix, driverA, selectedSession)
 					.then(setTelemetryA)
 					.catch(() => null);
 
-				getTelemetry(selectedYear, selectedGrandPrix, driverB, selectedSession)
-					.then(setTelemetryB)
-					.catch(() => null);
+				if (targetB) {
+					getTelemetry(selectedYear, selectedGrandPrix, targetB, selectedSession)
+						.then(setTelemetryB)
+						.catch(() => null);
 
-				getDelta(selectedYear, selectedGrandPrix, driverA, driverB, selectedSession)
-					.then(setDeltaData)
-					.catch(() => null);
+					getDelta(selectedYear, selectedGrandPrix, driverA, targetB, selectedSession)
+						.then(setDeltaData)
+						.catch(() => null);
+				}
 
 				getStrategy(selectedYear, selectedGrandPrix, driverA, selectedSession)
 					.then(setStrategyData)
@@ -195,7 +200,7 @@ export default function Home() {
 		}
 
 		loadProgressiveAnalytics();
-	}, [hasActiveSelection, selectedYear, selectedGrandPrix, selectedSession, driverA, driverB]);
+	}, [hasActiveSelection, selectedYear, selectedGrandPrix, selectedSession, driverA, driverB, raceData]);
 
 	return (
 		<div className="min-h-screen bg-[var(--bg-app)] text-[var(--text-primary)] font-sans transition-colors duration-200">
@@ -248,10 +253,10 @@ export default function Home() {
 							</div>
 						)}
 
-						{/* WORKBENCH LAYOUT: Instant Drivers Grid & Circuit Map */}
+						{/* WORKBENCH LAYOUT: Instant Drivers Grid & Stagnant Circuit Map */}
 						{raceData && (
 							<div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-start">
-								{/* LEFT SIDE: Racers List (Loaded instantly in < 0.05s) */}
+								{/* LEFT SIDE: Racers List */}
 								<div className="lg:col-span-3">
 									<DriverGrid
 										drivers={raceData.drivers}
@@ -263,55 +268,68 @@ export default function Home() {
 									/>
 								</div>
 
-								{/* MIDDLE: Circuit Racetrack Map from bacinger/f1-circuits */}
+								{/* MIDDLE: Stagnant Circuit Racetrack Map from bacinger/f1-circuits */}
 								<div className="lg:col-span-5">
 									<TrackCentricMap
 										trackData={trackOutline}
-										selectedDriver={driverA}
+										selectedDriver={driverA || undefined}
 										location={selectedLocation}
 									/>
 								</div>
 
-								{/* RIGHT SIDE: Driver Telemetry Controls & Pit Recommendation */}
+								{/* RIGHT SIDE: Active Driver Analytics - On-demand selection */}
 								<div className="lg:col-span-4 space-y-4">
 									<div className="apple-card rounded-2xl p-5 shadow-xl">
 										<h4 className="text-xs sm:text-sm font-bold uppercase text-[var(--text-primary)] mb-4 flex items-center justify-between border-b border-[var(--border-color)] pb-3">
 											<span>ACTIVE DRIVER ANALYTICS</span>
-											<span className="bg-[var(--accent-emerald)] text-black text-xs px-2.5 py-0.5 rounded-lg font-black">
-												{driverA}
-											</span>
+											{driverA ? (
+												<span className="bg-[var(--accent-emerald)] text-black text-xs px-2.5 py-0.5 rounded-lg font-black">
+													{driverA}
+												</span>
+											) : (
+												<span className="bg-zinc-500/20 text-[var(--text-secondary)] text-xs px-2 py-0.5 rounded-lg font-bold">
+													UNSELECTED
+												</span>
+											)}
 										</h4>
 
-										<DriverSelector
-											label="PRIMARY DRIVER (A)"
-											value={driverA}
-											drivers={raceData.drivers}
-											onChange={setDriverA}
-										/>
+										{driverA ? (
+											<>
+												<DriverSelector
+													label="PRIMARY DRIVER (A)"
+													value={driverA}
+													drivers={raceData.drivers}
+													onChange={setDriverA}
+												/>
 
-										<div className="mt-4">
-											<DriverSelector
-												label="COMPARISON DRIVER (B)"
-												value={driverB}
-												drivers={raceData.drivers}
-												onChange={setDriverB}
-											/>
-										</div>
+												<div className="mt-4">
+													<DriverSelector
+														label="COMPARISON DRIVER (B)"
+														value={driverB || (raceData.drivers.find((d) => d !== driverA) || "")}
+														drivers={raceData.drivers}
+														onChange={setDriverB}
+													/>
+												</div>
 
-										<div className="mt-4">
-											<MetricSelector
-												value={metric}
-												onChange={setMetric}
-											/>
-										</div>
+												<div className="mt-4">
+													<MetricSelector
+														value={metric}
+														onChange={setMetric}
+													/>
+												</div>
+											</>
+										) : (
+											<div className="py-8 px-4 text-center border border-dashed border-[var(--border-color)] rounded-2xl">
+												<span className="text-2xl block mb-2">👈</span>
+												<p className="text-xs sm:text-sm font-bold uppercase text-[var(--text-secondary)]">
+													Select a racer from the list to view telemetry & strategy insights
+												</p>
+											</div>
+										)}
 									</div>
 
-									{recommendationData ? (
+									{driverA && recommendationData && (
 										<RecommendationCard data={recommendationData} />
-									) : (
-										<div className="apple-card rounded-2xl p-4 text-xs font-semibold text-[var(--text-secondary)] text-center animate-pulse">
-											Calculating Pit Window Recommendations...
-										</div>
 									)}
 								</div>
 							</div>
@@ -355,30 +373,32 @@ export default function Home() {
 							/>
 						)}
 
-						{/* Progressive Telemetry Charts & Lap Delta */}
-						{telemetryA && telemetryB && deltaData ? (
-							<ErrorBoundary>
-								<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-									<TrackMap driver={driverA} year={selectedYear} grandPrix={selectedGrandPrix} session={selectedSession} />
-									{strategyData && <StrategyCard data={strategyData} />}
-								</div>
+						{/* Progressive Telemetry Charts & Lap Delta (Only rendered when driver is selected) */}
+						{driverA && (
+							telemetryA && telemetryB && deltaData ? (
+								<ErrorBoundary>
+									<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+										<TrackMap driver={driverA} year={selectedYear} grandPrix={selectedGrandPrix} session={selectedSession} />
+										{strategyData && <StrategyCard data={strategyData} />}
+									</div>
 
-								<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-									<LapDeltaChart data={deltaData} />
-									<TelemetryChart
-										driverA={driverA}
-										driverB={driverB}
-										telemetryA={telemetryA}
-										telemetryB={telemetryB}
-										metric={metric}
-									/>
+									<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+										<LapDeltaChart data={deltaData} />
+										<TelemetryChart
+											driverA={driverA}
+											driverB={driverB}
+											telemetryA={telemetryA}
+											telemetryB={telemetryB}
+											metric={metric}
+										/>
+									</div>
+								</ErrorBoundary>
+							) : (
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+									<ChartSkeleton height={320} />
+									<ChartSkeleton height={320} />
 								</div>
-							</ErrorBoundary>
-						) : (
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
-								<ChartSkeleton height={320} />
-								<ChartSkeleton height={320} />
-							</div>
+							)
 						)}
 					</main>
 				</div>
