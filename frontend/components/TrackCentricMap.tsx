@@ -25,31 +25,31 @@ interface TrackCentricMapProps {
 export default function TrackCentricMap({
 	trackData,
 	selectedDriver,
-	title = "CIRCUIT RACETRACK MAP",
+	title = "RACETRACK CIRCUIT MAP",
 }: TrackCentricMapProps) {
 	if (!trackData || !trackData.x || trackData.x.length === 0) {
 		return (
-			<div className="border-2 border-zinc-800 bg-zinc-950 p-8 flex items-center justify-center min-h-[440px] font-mono">
-				<span className="text-zinc-500 font-bold text-xs uppercase">
-					[NO TRACK LAYOUT DATA]
+			<div className="border border-zinc-800/80 bg-zinc-900/60 rounded-2xl p-8 flex items-center justify-center min-h-[440px] font-mono">
+				<span className="text-zinc-500 font-medium text-xs uppercase">
+					NO TRACK LAYOUT DATA AVAILABLE
 				</span>
 			</div>
 		);
 	}
 
 	return (
-		<div className="border-2 border-zinc-800 bg-zinc-950 p-4 font-mono shadow-[4px_4px_0px_0px_rgba(239,68,68,1)]">
-			<div className="flex justify-between items-center mb-3 border-b-2 border-zinc-800 pb-2">
+		<div className="border border-zinc-800/80 bg-zinc-900/60 rounded-2xl p-4 font-mono shadow-xl">
+			<div className="flex justify-between items-center mb-3 border-b border-zinc-800/80 pb-2">
 				<div>
-					<h3 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+					<h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
 						🏁 {title}
 					</h3>
-					<p className="text-[10px] text-zinc-500 font-bold uppercase mt-0.5">
-						{trackData.circuit} // {trackData.location}
+					<p className="text-[10px] text-zinc-500 font-medium uppercase mt-0.5">
+						{trackData.circuit} • {trackData.location}
 					</p>
 				</div>
 				{selectedDriver && (
-					<span className="bg-red-600 text-white text-[10px] px-2 py-0.5 font-black uppercase">
+					<span className="bg-emerald-950 border border-emerald-800 text-emerald-400 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase">
 						DRIVER: {selectedDriver}
 					</span>
 				)}
@@ -64,11 +64,11 @@ export default function TrackCentricMap({
 							mode: "markers+lines",
 							type: "scatter",
 							line: {
-								color: "#ef4444",
-								width: 3,
+								color: "#10b981",
+								width: 2.5,
 							},
 							marker: {
-								size: 6,
+								size: 5,
 								color: trackData.speed,
 								colorscale: "Turbo",
 								showscale: true,

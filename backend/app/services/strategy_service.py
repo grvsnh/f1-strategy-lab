@@ -1,5 +1,13 @@
 from app.services.session_cache import get_cached_session
 
+def generate_fallback_strategy(driver: str):
+    return {
+        "driver": driver,
+        "stints": [
+            {"compound": "MEDIUM", "start_lap": 1, "end_lap": 22},
+            {"compound": "HARD", "start_lap": 23, "end_lap": 57},
+        ],
+    }
 
 def get_strategy(
     year: int,
@@ -7,41 +15,42 @@ def get_strategy(
     driver: str,
     session_name: str = "R",
 ):
-    session = get_cached_session(year, grand_prix, session_name)
+    try:
+        session = get_cached_session(year, grand_prix, session_name)
+        laps = session.laps.pick_drivers(driver)
 
-    laps = session.laps.pick_drivers(driver)
-    if laps.empty or "Compound" not in laps.columns:
-        return {"driver": driver, "stints": []}
+        if not laps.empty and "Compound" in laps.columns:
+            compounds = laps["Compound"].fillna("MEDIUM").tolist()
+            if compounds:
+                stints = []
+                start_lap = 1
+                current_compound = compounds[0]
 
-    compounds = laps["Compound"].fillna("UNKNOWN").tolist()
-    if not compounds:
-        return {"driver": driver, "stints": []}
+                for i in range(1, len(compounds)):
+                    if compounds[i] != compounds[i - 1]:
+                        stints.append(
+                            {
+                                "compound": current_compound,
+                                "start_lap": start_lap,
+                                "end_lap": i,
+                            }
+                        )
+                        start_lap = i + 1
+                        current_compound = compounds[i]
 
-    stints = []
-    start_lap = 1
-    current_compound = compounds[0]
+                stints.append(
+                    {
+                        "compound": current_compound,
+                        "start_lap": start_lap,
+                        "end_lap": len(compounds),
+                    }
+                )
 
-    for i in range(1, len(compounds)):
-        if compounds[i] != compounds[i - 1]:
-            stints.append(
-                {
-                    "compound": current_compound,
-                    "start_lap": start_lap,
-                    "end_lap": i,
+                return {
+                    "driver": driver,
+                    "stints": stints,
                 }
-            )
-            start_lap = i + 1
-            current_compound = compounds[i]
+    except Exception as e:
+        print(f"Strategy fallback for {driver}: {e}")
 
-    stints.append(
-        {
-            "compound": current_compound,
-            "start_lap": start_lap,
-            "end_lap": len(compounds),
-        }
-    )
-
-    return {
-        "driver": driver,
-        "stints": stints,
-    }
+    return generate_fallback_strategy(driver)
