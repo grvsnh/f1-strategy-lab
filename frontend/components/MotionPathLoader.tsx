@@ -80,7 +80,7 @@ export default function MotionPathLoader({
 				</p>
 			</div>
 
-			{/* Enlarged SVG Circuit Canvas */}
+			{/* SVG Circuit Canvas with System Theme Adaptive Track Color */}
 			<div className="relative w-full max-w-2xl h-80 sm:h-96 apple-glass rounded-3xl flex items-center justify-center p-6 shadow-2xl overflow-hidden">
 				<svg
 					ref={svgRef}
@@ -88,15 +88,16 @@ export default function MotionPathLoader({
 					className="w-full h-full"
 					preserveAspectRatio="xMidYMid meet"
 				>
-					{/* Track Background Base */}
+					{/* Track Background Base (White in Dark mode, Dark in Light mode) */}
 					<path
 						d={trackSvgPath}
 						fill="none"
-						stroke="gray"
-						strokeOpacity="0.25"
+						stroke="currentColor"
+						strokeOpacity="0.4"
 						strokeWidth="14"
 						strokeLinecap="round"
 						strokeLinejoin="round"
+						className="text-[var(--text-primary)]"
 					/>
 
 					{/* Animated Racing Path */}

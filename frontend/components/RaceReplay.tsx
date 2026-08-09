@@ -164,15 +164,16 @@ export default function RaceReplay({
 			{/* Replay Visualizer Canvas */}
 			<div className="relative w-full h-[400px] sm:h-[480px] apple-glass rounded-2xl p-4 flex items-center justify-center overflow-hidden mb-6 shadow-inner">
 				<svg className="w-full h-full" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet">
-					{/* Circuit Track Path */}
+					{/* System Theme Adaptive Circuit Track Path (White in Dark mode, Black in Light mode) */}
 					{outline.x?.length > 0 && (
 						<polyline
 							fill="none"
-							stroke="gray"
-							strokeOpacity="0.3"
-							strokeWidth="10"
+							stroke="currentColor"
+							strokeOpacity="0.8"
+							strokeWidth="12"
 							strokeLinecap="round"
 							strokeLinejoin="round"
+							className="text-[var(--text-primary)]"
 							points={outline.x
 								.map(
 									(xVal: number, idx: number) =>
@@ -184,7 +185,7 @@ export default function RaceReplay({
 						/>
 					)}
 
-					{/* Driver Position Dots with Guaranteed Safe Coordinates */}
+					{/* Driver Position Dots */}
 					{replayData.drivers.map((drv: string) => {
 						if (!visibleDrivers.includes(drv)) return null;
 
@@ -227,7 +228,8 @@ export default function RaceReplay({
 								<text
 									x={cx + 10}
 									y={cy + 4}
-									fill={isSpotlight ? "#ffffff" : "gray"}
+									fill={isSpotlight ? "#ffffff" : "currentColor"}
+									className="text-[var(--text-primary)]"
 									fontSize={isSpotlight ? "14" : "11"}
 									fontWeight="bold"
 									fontFamily="monospace"
