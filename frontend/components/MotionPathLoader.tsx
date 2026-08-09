@@ -55,13 +55,12 @@ export default function MotionPathLoader({
 			console.log("Animation loop fallback");
 		}
 
-		// Check when data is ready before completing
 		const interval = setInterval(() => {
 			if (isDataReadyRef.current && onComplete) {
 				clearInterval(interval);
-				setTimeout(() => onComplete(), 400);
+				setTimeout(() => onComplete(), 300);
 			}
-		}, 300);
+		}, 200);
 
 		return () => {
 			clearInterval(interval);
@@ -71,21 +70,21 @@ export default function MotionPathLoader({
 	}, [onComplete]);
 
 	return (
-		<div className="fixed inset-0 bg-black/95 backdrop-blur-3xl z-50 flex flex-col items-center justify-center p-6 font-mono text-white select-none">
+		<div className="fixed inset-0 bg-[var(--bg-app)]/95 backdrop-blur-3xl z-50 flex flex-col items-center justify-center p-6 font-sans text-[var(--text-primary)] select-none transition-colors duration-200">
 			<div className="text-center mb-8">
-				<span className="text-xs sm:text-sm font-extrabold text-emerald-400 uppercase tracking-widest block mb-2 animate-pulse">
+				<span className="text-xs sm:text-sm font-extrabold text-[var(--accent-emerald)] uppercase tracking-widest block mb-2 animate-pulse">
 					⚡ TELEMETRY LAB // LOADING RACE CIRCUITS DATA
 				</span>
-				<h2 className="text-3xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tight">
+				<h2 className="text-3xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tight text-[var(--text-primary)]">
 					{year} {raceName}
 				</h2>
-				<p className="text-xs sm:text-sm text-zinc-400 font-bold uppercase mt-2">
+				<p className="text-xs sm:text-sm text-[var(--text-secondary)] font-bold uppercase mt-2">
 					📍 {circuitInfo ? circuitInfo.name : location || "F1 Circuit"}
 				</p>
 			</div>
 
 			{/* Enlarged SVG Circuit Canvas */}
-			<div className="relative w-full max-w-2xl h-80 sm:h-96 bg-zinc-950/90 border border-zinc-800 rounded-3xl flex items-center justify-center p-6 shadow-2xl overflow-hidden">
+			<div className="relative w-full max-w-2xl h-80 sm:h-96 apple-glass rounded-3xl flex items-center justify-center p-6 shadow-2xl overflow-hidden">
 				<svg
 					ref={svgRef}
 					viewBox="0 0 800 500"
@@ -96,7 +95,8 @@ export default function MotionPathLoader({
 					<path
 						d={trackSvgPath}
 						fill="none"
-						stroke="#27272a"
+						stroke="gray"
+						strokeOpacity="0.25"
 						strokeWidth="14"
 						strokeLinecap="round"
 						strokeLinejoin="round"
@@ -125,9 +125,9 @@ export default function MotionPathLoader({
 					/>
 				</svg>
 
-				<div className="absolute bottom-4 right-6 text-xs text-zinc-400 font-bold uppercase flex items-center gap-2">
-					<span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-					SYNCING DATA SENSORS...
+				<div className="absolute bottom-4 right-6 text-xs text-[var(--text-secondary)] font-bold uppercase flex items-center gap-2">
+					<span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-emerald)] animate-ping"></span>
+					Syncing Sensors...
 				</div>
 			</div>
 		</div>

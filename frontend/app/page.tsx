@@ -192,8 +192,8 @@ export default function Home() {
 	}, [hasActiveSelection, selectedYear, selectedGrandPrix, selectedSession, driverA, driverB]);
 
 	return (
-		<div className="min-h-screen bg-black text-white font-mono">
-			{/* Motion Path F1 Circuit Animation Screen - Stays until data is ready */}
+		<div className="min-h-screen bg-[var(--bg-app)] text-[var(--text-primary)] font-sans transition-colors duration-200">
+			{/* Motion Path F1 Circuit Animation Screen */}
 			{isAnimatingLoader && (
 				<MotionPathLoader
 					raceName={selectedGrandPrix}
@@ -204,25 +204,25 @@ export default function Home() {
 				/>
 			)}
 
-			{/* MAIN LANDING SCREEN: No Navbar, No Scroll, Single-page layout */}
+			{/* MAIN LANDING SCREEN: System UI Theme adapted */}
 			{!hasActiveSelection ? (
 				<HeroRaceSearchLanding onSelectRace={handleSelectRaceFromLanding} />
 			) : (
 				<div className="pb-16 pt-6">
-					{/* OVERHAULED RACE WORKBENCH HEADER: Larger, Mobile Responsive, Modular SessionSelector */}
-					<header className="max-w-7xl mx-auto px-4 sm:px-6 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+					{/* OVERHAULED RACE WORKBENCH HEADER: Apple System UI Glass Style */}
+					<header className="max-w-7xl mx-auto px-4 sm:px-6 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[var(--border-color)] pb-5">
 						<div className="flex items-center gap-4">
 							<button
 								onClick={() => setHasActiveSelection(false)}
-								className="bg-zinc-900 hover:bg-emerald-500 hover:text-black border border-zinc-800 text-zinc-300 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition uppercase flex items-center gap-2 shadow-xl active:scale-95 touch-manipulation"
+								className="apple-card text-[var(--text-primary)] px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition uppercase flex items-center gap-2 shadow-lg active:scale-95 touch-manipulation"
 							>
 								← BACK TO RACES
 							</button>
 							<div>
-								<h2 className="text-xl sm:text-3xl font-black uppercase text-white tracking-wide">
+								<h2 className="text-xl sm:text-3xl font-black uppercase text-[var(--text-primary)] tracking-wide">
 									{selectedYear} {selectedGrandPrix}
 								</h2>
-								<p className="text-xs sm:text-sm text-zinc-400 font-bold uppercase mt-0.5">
+								<p className="text-xs sm:text-sm text-[var(--text-secondary)] font-semibold uppercase mt-0.5">
 									📍 {selectedLocation} • LIVE TELEMETRY LAB
 								</p>
 							</div>
@@ -237,7 +237,7 @@ export default function Home() {
 
 					<main className="max-w-7xl mx-auto px-4 sm:px-6">
 						{error && (
-							<div className="border border-red-800 bg-red-950/60 p-4 rounded-2xl mb-6 text-red-300 font-mono text-xs sm:text-sm uppercase">
+							<div className="border border-red-500/40 bg-red-500/10 p-4 rounded-2xl mb-6 text-red-500 font-sans text-xs sm:text-sm font-semibold uppercase">
 								⚠️ {error}
 							</div>
 						)}
@@ -268,10 +268,10 @@ export default function Home() {
 
 								{/* RIGHT SIDE: Driver Telemetry Controls & Pit Recommendation */}
 								<div className="lg:col-span-4 space-y-4">
-									<div className="border border-zinc-800/80 bg-zinc-900/60 rounded-2xl p-5 shadow-xl">
-										<h4 className="text-xs sm:text-sm font-bold uppercase text-white mb-4 flex items-center justify-between border-b border-zinc-800 pb-3">
+									<div className="apple-card rounded-2xl p-5 shadow-xl">
+										<h4 className="text-xs sm:text-sm font-bold uppercase text-[var(--text-primary)] mb-4 flex items-center justify-between border-b border-[var(--border-color)] pb-3">
 											<span>ACTIVE DRIVER ANALYTICS</span>
-											<span className="bg-emerald-500 text-black text-xs px-2.5 py-0.5 rounded-lg font-black">
+											<span className="bg-[var(--accent-emerald)] text-black text-xs px-2.5 py-0.5 rounded-lg font-black">
 												{driverA}
 											</span>
 										</h4>

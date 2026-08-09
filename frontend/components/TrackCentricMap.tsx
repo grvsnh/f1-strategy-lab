@@ -38,8 +38,8 @@ export default function TrackCentricMap({
 
 	if (mapX.length === 0) {
 		return (
-			<div className="border border-zinc-800/80 bg-zinc-900/60 rounded-2xl p-8 flex items-center justify-center min-h-[440px] font-mono">
-				<span className="text-zinc-500 font-medium text-xs uppercase">
+			<div className="apple-card rounded-2xl p-8 flex items-center justify-center min-h-[440px] font-sans">
+				<span className="text-[var(--text-secondary)] font-semibold text-xs uppercase">
 					NO TRACK LAYOUT DATA AVAILABLE
 				</span>
 			</div>
@@ -47,18 +47,18 @@ export default function TrackCentricMap({
 	}
 
 	return (
-		<div className="border border-zinc-800/80 bg-zinc-900/60 rounded-2xl p-4 font-mono shadow-2xl">
-			<div className="flex justify-between items-center mb-3 border-b border-zinc-800/80 pb-2">
+		<div className="apple-card rounded-2xl p-4 font-sans shadow-xl">
+			<div className="flex justify-between items-center mb-3 border-b border-[var(--border-color)] pb-2">
 				<div>
-					<h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+					<h3 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider flex items-center gap-2">
 						🏁 {title}
 					</h3>
-					<p className="text-[10px] text-zinc-500 font-medium uppercase mt-0.5">
+					<p className="text-[10px] text-[var(--text-secondary)] font-medium uppercase mt-0.5">
 						{circuitInfo ? circuitInfo.name : trackData?.circuit} • {location || trackData?.location}
 					</p>
 				</div>
 				{selectedDriver && (
-					<span className="bg-emerald-950 border border-emerald-800 text-emerald-400 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase">
+					<span className="bg-[var(--accent-emerald)]/20 border border-[var(--accent-emerald)]/40 text-[var(--accent-emerald)] text-[10px] px-2.5 py-1 rounded-full font-bold uppercase">
 						DRIVER: {selectedDriver}
 					</span>
 				)}
@@ -83,8 +83,8 @@ export default function TrackCentricMap({
 								showscale: speedData.length === mapX.length,
 								colorbar: {
 									title: "KM/H",
-									tickfont: { color: "#a1a1aa", family: "monospace" },
-									titlefont: { color: "#ffffff", family: "monospace" },
+									tickfont: { color: "gray", family: "sans-serif" },
+									titlefont: { color: "gray", family: "sans-serif" },
 								},
 							},
 						},
@@ -94,8 +94,8 @@ export default function TrackCentricMap({
 						paper_bgcolor: "transparent",
 						plot_bgcolor: "transparent",
 						font: {
-							color: "white",
-							family: "monospace",
+							color: "gray",
+							family: "sans-serif",
 						},
 						xaxis: {
 							visible: false,

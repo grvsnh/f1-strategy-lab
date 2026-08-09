@@ -18,12 +18,12 @@ export default function DriverGrid({
 	onOpenIntelligence,
 }: DriverGridProps) {
 	return (
-		<div className="border border-zinc-800/80 bg-zinc-900/60 rounded-2xl p-4 font-mono">
-			<div className="flex justify-between items-center mb-3 border-b border-zinc-800 pb-2">
-				<h3 className="text-xs font-bold text-white uppercase tracking-wider">
+		<div className="apple-card rounded-2xl p-4 font-sans shadow-lg">
+			<div className="flex justify-between items-center mb-3 border-b border-[var(--border-color)] pb-2">
+				<h3 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
 					DRIVERS ({drivers.length})
 				</h3>
-				<span className="text-[10px] text-zinc-500 font-medium">
+				<span className="text-[10px] text-[var(--text-secondary)] font-semibold">
 					CLICK = DETAILS
 				</span>
 			</div>
@@ -40,39 +40,39 @@ export default function DriverGrid({
 								if (onOpenIntelligence) onOpenIntelligence(drv);
 								else onSelectDriver(drv);
 							}}
-							className={`p-2.5 rounded-xl border cursor-pointer transition-all duration-150 relative group ${
+							className={`p-3 rounded-xl border cursor-pointer transition-all duration-150 relative group ${
 								isA
-									? "bg-emerald-950/40 border-emerald-500 text-white"
+									? "bg-[var(--accent-emerald)]/15 border-[var(--accent-emerald)] text-[var(--text-primary)] font-bold shadow-md"
 									: isB
-									? "bg-blue-950/40 border-blue-500 text-white"
-									: "bg-zinc-900/80 border-zinc-800/80 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800/60"
+									? "bg-[var(--accent-blue)]/15 border-[var(--accent-blue)] text-[var(--text-primary)] font-bold shadow-md"
+									: "apple-card text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
 							}`}
 						>
 							<div className="flex items-center justify-between">
-								<span className="text-xs font-bold tracking-wider">
+								<span className="text-xs font-bold tracking-wider font-mono">
 									{drv}
 								</span>
 								<div className="flex gap-1">
 									{isA && (
-										<span className="bg-emerald-500 text-black text-[9px] px-1 py-0.2 rounded font-bold">
+										<span className="bg-[var(--accent-emerald)] text-black text-[9px] px-1.5 py-0.5 rounded font-bold">
 											A
 										</span>
 									)}
 									{isB && (
-										<span className="bg-blue-500 text-white text-[9px] px-1 py-0.2 rounded font-bold">
+										<span className="bg-[var(--accent-blue)] text-white text-[9px] px-1.5 py-0.5 rounded font-bold">
 											B
 										</span>
 									)}
 								</div>
 							</div>
 
-							<div className="mt-2 flex items-center justify-between text-[9px] text-zinc-500 font-medium border-t border-zinc-800/60 pt-1">
+							<div className="mt-2 flex items-center justify-between text-[9px] text-[var(--text-secondary)] font-semibold border-t border-[var(--border-color)] pt-1.5">
 								<button
 									onClick={(e) => {
 										e.stopPropagation();
 										onSelectDriver(drv);
 									}}
-									className="hover:text-emerald-400"
+									className="hover:text-[var(--accent-emerald)]"
 								>
 									SET A
 								</button>
@@ -82,7 +82,7 @@ export default function DriverGrid({
 											e.stopPropagation();
 											onSelectCompareDriver(drv);
 										}}
-										className="hover:text-blue-400"
+										className="hover:text-[var(--accent-blue)]"
 									>
 										SET B
 									</button>
