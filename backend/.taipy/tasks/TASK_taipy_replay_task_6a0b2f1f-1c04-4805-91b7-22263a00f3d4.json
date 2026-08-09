@@ -1,0 +1,19 @@
+{
+"id": "TASK_taipy_replay_task_6a0b2f1f-1c04-4805-91b7-22263a00f3d4",
+"owner_id": "SCENARIO_taipy_replay_scenario_d2d56ef3-c140-4e03-872a-c7b51c54bffc",
+"parent_ids": [
+"SCENARIO_taipy_replay_scenario_d2d56ef3-c140-4e03-872a-c7b51c54bffc"
+],
+"config_id": "taipy_replay_task",
+"input_ids": [
+"DATANODE_driver_codes_node_d2a335d4-864d-437c-a84d-b9bcc1b8c13e"
+],
+"function_name": "compute_replay_frames_task",
+"function_module": "app.services.taipy_replay_service",
+"output_ids": [
+"DATANODE_replay_output_node_6d823dd6-e4b4-4540-a664-dd1513b87d83"
+],
+"version": "fe4a4047-1347-4d29-9e4d-ca9d0a5b53e0",
+"skippable": false,
+"properties": {}
+}

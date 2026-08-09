@@ -1,0 +1,19 @@
+{
+"id": "SUBMISSION_af796c2d-8cac-4d87-8875-f9b67d3747fe",
+"entity_id": "SCENARIO_taipy_replay_scenario_59c7fc5c-8d0c-43fa-99c8-210322281ee7",
+"entity_type": "SCENARIO",
+"entity_config_id": "taipy_replay_scenario",
+"job_ids": [
+"JOB_taipy_replay_task_3012f36b-59dd-423a-9ded-c0882887b043"
+],
+"properties": {},
+"creation_date": "2026-08-09T06:19:58.778924",
+"submission_status": "<SubmissionStatus.COMPLETED: 7>",
+"version": "fe4a4047-1347-4d29-9e4d-ca9d0a5b53e0",
+"is_completed": true,
+"is_abandoned": false,
+"is_canceled": false,
+"running_jobs": [],
+"blocked_jobs": [],
+"pending_jobs": []
+}

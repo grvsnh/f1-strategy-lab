@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { getRaceReplay } from "../lib/api";
 
 interface RaceReplayProps {
@@ -124,6 +124,14 @@ export default function RaceReplay({
 	const maxFrames = replayData.total_frames || 100;
 	const outline = replayData.track_outline || { x: [], y: [] };
 
+	const minX = outline.x?.length ? Math.min(...outline.x) : -5000;
+	const maxX = outline.x?.length ? Math.max(...outline.x) : 5000;
+	const minY = outline.y?.length ? Math.min(...outline.y) : -5000;
+	const maxY = outline.y?.length ? Math.max(...outline.y) : 5000;
+
+	const rangeX = maxX - minX || 1;
+	const rangeY = maxY - minY || 1;
+
 	return (
 		<div className="apple-card rounded-2xl p-6 my-6 shadow-xl font-sans">
 			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -157,7 +165,7 @@ export default function RaceReplay({
 			<div className="relative w-full h-[400px] sm:h-[480px] apple-glass rounded-2xl p-4 flex items-center justify-center overflow-hidden mb-6 shadow-inner">
 				<svg className="w-full h-full" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet">
 					{/* Circuit Track Path */}
-					{outline.x.length > 0 && (
+					{outline.x?.length > 0 && (
 						<polyline
 							fill="none"
 							stroke="gray"
@@ -168,23 +176,40 @@ export default function RaceReplay({
 							points={outline.x
 								.map(
 									(xVal: number, idx: number) =>
-										`${((xVal - Math.min(...outline.x)) / (Math.max(...outline.x) - Math.min(...outline.x) || 1)) * 900 + 50},${
-											550 - ((outline.y[idx] - Math.min(...outline.y)) / (Math.max(...outline.y) - Math.min(...outline.y) || 1)) * 500
+										`${((xVal - minX) / rangeX) * 900 + 50},${
+											550 - ((outline.y[idx] - minY) / rangeY) * 500
 										}`
 								)
 								.join(" ")}
 						/>
 					)}
 
-					{/* Driver Position Dots */}
+					{/* Driver Position Dots with Guaranteed Safe Coordinates */}
 					{replayData.drivers.map((drv: string) => {
 						if (!visibleDrivers.includes(drv)) return null;
 
-						const dData = replayData.replays?.[drv] || replayData.frames?.[currentFrame]?.drivers?.[drv];
-						if (!dData) return null;
+						let rawX = 0;
+						let rawY = 0;
+						const frameIdx = Math.min(currentFrame, maxFrames - 1);
 
-						const cx = dData.x ? ((dData.x - 50) / 700) * 900 + 50 : 500;
-						const cy = dData.y ? dData.y : 250;
+						if (replayData.replays?.[drv]?.x?.length) {
+							const xArr = replayData.replays[drv].x;
+							const yArr = replayData.replays[drv].y;
+							const validIdx = Math.min(frameIdx, xArr.length - 1);
+							rawX = typeof xArr[validIdx] === "number" && !isNaN(xArr[validIdx]) ? xArr[validIdx] : 0;
+							rawY = typeof yArr[validIdx] === "number" && !isNaN(yArr[validIdx]) ? yArr[validIdx] : 0;
+						} else if (replayData.frames?.[frameIdx]?.drivers?.[drv]) {
+							const dObj = replayData.frames[frameIdx].drivers[drv];
+							rawX = typeof dObj.x === "number" && !isNaN(dObj.x) ? dObj.x : 0;
+							rawY = typeof dObj.y === "number" && !isNaN(dObj.y) ? dObj.y : 0;
+						}
+
+						const calcCx = Math.round(((rawX - minX) / rangeX) * 900 + 50);
+						const calcCy = Math.round(550 - ((rawY - minY) / rangeY) * 500);
+
+						const cx = isNaN(calcCx) ? 500 : calcCx;
+						const cy = isNaN(calcCy) ? 300 : calcCy;
+
 						const isSpotlight = spotlightDriver === drv;
 						const color = DRIVER_COLORS[drv] || "#10b981";
 

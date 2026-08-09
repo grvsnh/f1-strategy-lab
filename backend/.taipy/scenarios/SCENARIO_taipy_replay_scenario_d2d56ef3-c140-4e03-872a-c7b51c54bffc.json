@@ -1,0 +1,16 @@
+{
+"id": "SCENARIO_taipy_replay_scenario_d2d56ef3-c140-4e03-872a-c7b51c54bffc",
+"config_id": "taipy_replay_scenario",
+"tasks": [
+"TASK_taipy_replay_task_6a0b2f1f-1c04-4805-91b7-22263a00f3d4"
+],
+"additional_data_nodes": [],
+"properties": {},
+"creation_date": "2026-08-09T06:18:18.592192",
+"primary_scenario": false,
+"subscribers": [],
+"tags": [],
+"version": "fe4a4047-1347-4d29-9e4d-ca9d0a5b53e0",
+"sequences": null,
+"cycle": null
+}

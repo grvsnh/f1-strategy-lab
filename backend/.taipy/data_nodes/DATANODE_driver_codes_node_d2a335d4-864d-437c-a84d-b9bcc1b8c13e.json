@@ -1,0 +1,31 @@
+{
+"id": "DATANODE_driver_codes_node_d2a335d4-864d-437c-a84d-b9bcc1b8c13e",
+"config_id": "driver_codes_node",
+"scope": "<Scope.SCENARIO: 1>",
+"storage_type": "pickle",
+"owner_id": "SCENARIO_taipy_replay_scenario_d2d56ef3-c140-4e03-872a-c7b51c54bffc",
+"parent_ids": [
+"TASK_taipy_replay_task_6a0b2f1f-1c04-4805-91b7-22263a00f3d4"
+],
+"last_edit_date": "2026-08-09T06:18:18.609620",
+"edits": [
+{
+"timestamp": "2026-08-09T06:18:18.584656",
+"editor": "TAIPY",
+"comment": "Default data written."
+},
+{
+"timestamp": "2026-08-09T06:18:18.609620"
+}
+],
+"version": "fe4a4047-1347-4d29-9e4d-ca9d0a5b53e0",
+"validity_days": null,
+"validity_seconds": null,
+"edit_in_progress": false,
+"editor_id": null,
+"editor_expiration_date": null,
+"data_node_properties": {
+"is_generated": true,
+"path": "user_data/pickles/DATANODE_driver_codes_node_d2a335d4-864d-437c-a84d-b9bcc1b8c13e.p"
+}
+}
