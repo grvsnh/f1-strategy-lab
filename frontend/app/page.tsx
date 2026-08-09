@@ -9,6 +9,7 @@ import {
 	getRecommendation,
 	getTrackOutline,
 } from "../lib/api";
+import { getDriverProfile } from "../lib/driver_data";
 
 import DriverSelector from "../components/DriverSelector";
 import MetricSelector, { MetricKey } from "../components/MetricSelector";
@@ -97,7 +98,7 @@ export default function Home() {
 	const [recommendationData, setRecommendationData] =
 		useState<RecommendationData | null>(null);
 
-	// Empty initial driver selection for clean, light initial page load
+	// On-demand driver selection state
 	const [driverA, setDriverA] = useState("");
 	const [driverB, setDriverB] = useState("");
 	const [metric, setMetric] = useState<MetricKey>("speed");
@@ -159,7 +160,7 @@ export default function Home() {
 		loadRaceDriversAndCircuit();
 	}, [hasActiveSelection, isAnimatingLoader, selectedYear, selectedGrandPrix, selectedSession]);
 
-	// STEP 2: On-Demand Telemetry Loading - Only loads when driverA is selected by user
+	// STEP 2: On-Demand Telemetry Loading - Fires when user selects driverA
 	useEffect(() => {
 		if (!hasActiveSelection || !selectedGrandPrix || !driverA) return;
 
@@ -277,18 +278,26 @@ export default function Home() {
 									/>
 								</div>
 
-								{/* RIGHT SIDE: Active Driver Analytics - On-demand selection */}
+								{/* RIGHT SIDE: Interactive On-Demand Driver Selector & Analytics */}
 								<div className="lg:col-span-4 space-y-4">
 									<div className="apple-card rounded-2xl p-5 shadow-xl">
 										<h4 className="text-xs sm:text-sm font-bold uppercase text-[var(--text-primary)] mb-4 flex items-center justify-between border-b border-[var(--border-color)] pb-3">
 											<span>ACTIVE DRIVER ANALYTICS</span>
 											{driverA ? (
-												<span className="bg-[var(--accent-emerald)] text-black text-xs px-2.5 py-0.5 rounded-lg font-black">
-													{driverA}
-												</span>
+												<div className="flex items-center gap-2">
+													<span className="bg-[var(--accent-emerald)] text-black text-xs px-2.5 py-0.5 rounded-lg font-black">
+														{driverA}
+													</span>
+													<button
+														onClick={() => setDriverA("")}
+														className="text-[10px] text-[var(--text-secondary)] hover:text-red-500 font-bold uppercase"
+													>
+														RESET
+													</button>
+												</div>
 											) : (
-												<span className="bg-zinc-500/20 text-[var(--text-secondary)] text-xs px-2 py-0.5 rounded-lg font-bold">
-													UNSELECTED
+												<span className="bg-[var(--accent-emerald)]/20 text-[var(--accent-emerald)] text-xs px-2 py-0.5 rounded-lg font-bold animate-pulse">
+													ON DEMAND
 												</span>
 											)}
 										</h4>
@@ -319,11 +328,47 @@ export default function Home() {
 												</div>
 											</>
 										) : (
-											<div className="py-8 px-4 text-center border border-dashed border-[var(--border-color)] rounded-2xl">
-												<span className="text-2xl block mb-2">👈</span>
-												<p className="text-xs sm:text-sm font-bold uppercase text-[var(--text-secondary)]">
-													Select a racer from the list to view telemetry & strategy insights
-												</p>
+											<div className="space-y-4 py-2">
+												<div className="text-center border border-dashed border-[var(--border-color)] rounded-2xl p-4">
+													<span className="text-xl block mb-1">🏎️</span>
+													<h5 className="text-xs sm:text-sm font-extrabold uppercase text-[var(--text-primary)]">
+														SELECT YOUR DRIVER FOR STATS
+													</h5>
+													<p className="text-[11px] text-[var(--text-secondary)] mt-1">
+														Choose any racer below to load live speed, telemetry graphs & strategy windows
+													</p>
+												</div>
+
+												{/* Driver Quick Picker Grid */}
+												<div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+													{raceData.drivers.slice(0, 8).map((drvCode) => {
+														const prof = getDriverProfile(drvCode);
+														return (
+															<button
+																key={drvCode}
+																onClick={() => setDriverA(drvCode)}
+																className="apple-glass p-2.5 rounded-xl border border-[var(--border-color)] hover:border-[var(--accent-emerald)] text-left flex items-center gap-2.5 transition active:scale-95 group"
+															>
+																<img
+																	src={prof.imageUrl}
+																	alt={prof.fullName}
+																	className="w-7 h-7 rounded-full object-cover bg-zinc-900 border border-[var(--border-color)]"
+																	onError={(e) => {
+																		(e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${prof.code}&background=18181b&color=10b981&bold=true`;
+																	}}
+																/>
+																<div className="truncate">
+																	<span className="text-xs font-bold text-[var(--text-primary)] block truncate group-hover:text-[var(--accent-emerald)]">
+																		{prof.lastName || prof.fullName}
+																	</span>
+																	<span className="text-[9px] font-mono text-[var(--text-secondary)]">
+																		#{prof.number}
+																	</span>
+																</div>
+															</button>
+														);
+													})}
+												</div>
 											</div>
 										)}
 									</div>
@@ -335,7 +380,7 @@ export default function Home() {
 							</div>
 						)}
 
-						{/* Interactive 2D Race Replay (Loads asynchronously in background) */}
+						{/* Interactive 2D Race Replay powered by Taipy 4.1.1 */}
 						{raceData && (
 							<ErrorBoundary>
 								<RaceReplay
@@ -373,7 +418,7 @@ export default function Home() {
 							/>
 						)}
 
-						{/* Progressive Telemetry Charts & Lap Delta (Only rendered when driver is selected) */}
+						{/* Progressive Telemetry Charts & Lap Delta (Rendered on driver selection) */}
 						{driverA && (
 							telemetryA && telemetryB && deltaData ? (
 								<ErrorBoundary>
