@@ -23,6 +23,11 @@ data/processed/*
 
 fastf1_http_cache.sqlite
 
+.taipy/
+backend/.taipy/
+user_data/
+backend/user_data/
+
 .vscode/
 .idea/
 
