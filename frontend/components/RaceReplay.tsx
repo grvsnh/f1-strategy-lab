@@ -38,7 +38,7 @@ export default function RaceReplay({
 	session,
 }: RaceReplayProps) {
 	const [replayData, setReplayData] = useState<any>(null);
-	const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
 
 	const [currentFrame, setCurrentFrame] = useState(0);
@@ -47,26 +47,34 @@ export default function RaceReplay({
 	const [visibleDrivers, setVisibleDrivers] = useState<string[]>([]);
 	const [spotlightDriver, setSpotlightDriver] = useState<string | null>(null);
 
-	const animationRef = useRef<number | null>(null);
-
 	useEffect(() => {
-		async function loadReplay() {
+		let isSubscribed = true;
+
+		async function loadReplayAsync() {
 			try {
 				setLoading(true);
 				setError("");
 				setIsPlaying(false);
 				const data = await getRaceReplay(year, grandPrix, session);
-				setReplayData(data);
-				setVisibleDrivers(data.drivers || []);
-				setCurrentFrame(0);
+				if (isSubscribed) {
+					setReplayData(data);
+					setVisibleDrivers(data.drivers || []);
+					setCurrentFrame(0);
+				}
 			} catch (err) {
-				setError(err instanceof Error ? err.message : "Failed to load replay");
+				if (isSubscribed) {
+					setError(err instanceof Error ? err.message : "Failed to load replay");
+				}
 			} finally {
-				setLoading(false);
+				if (isSubscribed) setLoading(false);
 			}
 		}
 
-		loadReplay();
+		loadReplayAsync();
+
+		return () => {
+			isSubscribed = false;
+		};
 	}, [year, grandPrix, session]);
 
 	// Animation loop
@@ -75,7 +83,7 @@ export default function RaceReplay({
 
 		const interval = setInterval(() => {
 			setCurrentFrame((prevFrame) => {
-				const maxFrames = 200;
+				const maxFrames = replayData.total_frames || 100;
 				if (prevFrame >= maxFrames - 1) {
 					setIsPlaying(false);
 					return prevFrame;
@@ -97,50 +105,46 @@ export default function RaceReplay({
 
 	if (loading) {
 		return (
-			<div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-8 my-6 text-center animate-pulse">
-				<span className="text-zinc-400 font-mono">Loading Interactive Race Replay Engine...</span>
+			<div className="border border-zinc-800 bg-zinc-900/40 rounded-2xl p-6 my-6 font-mono text-center flex items-center justify-between">
+				<div className="flex items-center gap-3">
+					<span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+					<span className="text-xs sm:text-sm font-bold uppercase text-zinc-400">
+						SYNCING 2D RACE REPLAY TIMELINE IN BACKGROUND...
+					</span>
+				</div>
+				<span className="text-xs text-emerald-400 font-bold uppercase">
+					EXPLORE TELEMETRY BELOW ↓
+				</span>
 			</div>
 		);
 	}
 
-	if (error || !replayData) {
-		return null;
-	}
+	if (error || !replayData) return null;
 
-	const maxFrames = 200;
+	const maxFrames = replayData.total_frames || 100;
 	const outline = replayData.track_outline || { x: [], y: [] };
 
-	// Compute bounds for canvas coordinate normalization
-	const minX = Math.min(...(outline.x.length ? outline.x : [0]));
-	const maxX = Math.max(...(outline.x.length ? outline.x : [1000]));
-	const minY = Math.min(...(outline.y.length ? outline.y : [0]));
-	const maxY = Math.max(...(outline.y.length ? outline.y : [1000]));
-
-	const rangeX = maxX - minX || 1;
-	const rangeY = maxY - minY || 1;
-
 	return (
-		<div className="rounded-2xl border border-zinc-800 bg-zinc-900/90 backdrop-blur-md p-6 my-6 shadow-2xl">
+		<div className="border border-zinc-800/80 bg-zinc-900/60 rounded-2xl p-6 my-6 shadow-2xl font-mono">
 			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
 				<div>
-					<h3 className="text-2xl font-black text-white flex items-center gap-2">
-						🎬 Interactive Race Replay
+					<h3 className="text-xl font-bold uppercase text-white flex items-center gap-2">
+						🎬 2D Animated Race Replay Engine
 					</h3>
-					<p className="text-xs text-zinc-400">
-						{grandPrix} ({year}) • Frame {currentFrame + 1} / {maxFrames}
+					<p className="text-xs text-zinc-500 font-medium uppercase mt-0.5">
+						{grandPrix} ({year}) • FRAME {currentFrame + 1} / {maxFrames}
 					</p>
 				</div>
 
 				<div className="flex items-center gap-2">
-					{/* Speed Controls */}
 					{[1, 2, 5, 10].map((s) => (
 						<button
 							key={s}
 							onClick={() => setSpeed(s)}
-							className={`px-2.5 py-1 text-xs font-mono font-bold rounded-lg border transition ${
+							className={`px-3 py-1.5 text-xs font-mono font-bold rounded-xl border transition ${
 								speed === s
-									? "bg-red-600 border-red-500 text-white"
-									: "bg-zinc-800 border-zinc-700 text-zinc-400 hover:text-white"
+									? "bg-emerald-500 border-emerald-400 text-black shadow-md"
+									: "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white"
 							}`}
 						>
 							{s}x
@@ -149,22 +153,22 @@ export default function RaceReplay({
 				</div>
 			</div>
 
-			{/* Replay Visualizer Box */}
-			<div className="relative w-full h-[450px] bg-black/60 rounded-xl border border-zinc-800/80 p-4 flex items-center justify-center overflow-hidden mb-6">
+			{/* Replay Visualizer Canvas */}
+			<div className="relative w-full h-[400px] sm:h-[480px] bg-black/80 rounded-2xl border border-zinc-800/80 p-4 flex items-center justify-center overflow-hidden mb-6 shadow-inner">
 				<svg className="w-full h-full" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet">
 					{/* Circuit Track Path */}
 					{outline.x.length > 0 && (
 						<polyline
 							fill="none"
 							stroke="#27272a"
-							strokeWidth="12"
+							strokeWidth="10"
 							strokeLinecap="round"
 							strokeLinejoin="round"
 							points={outline.x
 								.map(
 									(xVal: number, idx: number) =>
-										`${((xVal - minX) / rangeX) * 900 + 50},${
-											550 - ((outline.y[idx] - minY) / rangeY) * 500
+										`${((xVal - Math.min(...outline.x)) / (Math.max(...outline.x) - Math.min(...outline.x) || 1)) * 900 + 50},${
+											550 - ((outline.y[idx] - Math.min(...outline.y)) / (Math.max(...outline.y) - Math.min(...outline.y) || 1)) * 500
 										}`
 								)
 								.join(" ")}
@@ -175,31 +179,30 @@ export default function RaceReplay({
 					{replayData.drivers.map((drv: string) => {
 						if (!visibleDrivers.includes(drv)) return null;
 
-						const dData = replayData.replays[drv];
-						if (!dData || !dData.x || dData.x.length === 0) return null;
+						const dData = replayData.replays?.[drv] || replayData.frames?.[currentFrame]?.drivers?.[drv];
+						if (!dData) return null;
 
-						const idx = Math.min(currentFrame, dData.x.length - 1);
-						const cx = ((dData.x[idx] - minX) / rangeX) * 900 + 50;
-						const cy = 550 - ((dData.y[idx] - minY) / rangeY) * 500;
+						const cx = dData.x ? ((dData.x - 50) / 700) * 900 + 50 : 500;
+						const cy = dData.y ? dData.y : 250;
 						const isSpotlight = spotlightDriver === drv;
-						const color = DRIVER_COLORS[drv] || "#ffffff";
+						const color = DRIVER_COLORS[drv] || "#10b981";
 
 						return (
 							<g key={drv} className="transition-all duration-75">
 								<circle
 									cx={cx}
 									cy={cy}
-									r={isSpotlight ? 10 : 6}
+									r={isSpotlight ? 10 : 7}
 									fill={color}
-									stroke="#000000"
+									stroke="#ffffff"
 									strokeWidth="2"
 									className={isSpotlight ? "animate-pulse" : ""}
 								/>
 								<text
-									x={cx + 9}
+									x={cx + 10}
 									y={cy + 4}
 									fill={isSpotlight ? "#ffffff" : "#a1a1aa"}
-									fontSize={isSpotlight ? "13" : "10"}
+									fontSize={isSpotlight ? "14" : "11"}
 									fontWeight="bold"
 									fontFamily="monospace"
 								>
@@ -211,9 +214,9 @@ export default function RaceReplay({
 				</svg>
 
 				{spotlightDriver && (
-					<div className="absolute top-4 left-4 bg-red-950/80 border border-red-800 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-2">
-						<span>Spotlight: <strong>{spotlightDriver}</strong></span>
-						<button onClick={() => setSpotlightDriver(null)} className="text-zinc-400 hover:text-white">✕</button>
+					<div className="absolute top-4 left-4 bg-zinc-900 border border-zinc-800 text-white text-xs px-3.5 py-1.5 rounded-xl flex items-center gap-2 font-bold shadow-lg">
+						<span>SPOTLIGHT: <strong className="text-emerald-400">{spotlightDriver}</strong></span>
+						<button onClick={() => setSpotlightDriver(null)} className="text-zinc-500 hover:text-white">✕</button>
 					</div>
 				)}
 			</div>
@@ -223,16 +226,16 @@ export default function RaceReplay({
 				<div className="flex items-center gap-4">
 					<button
 						onClick={() => setIsPlaying(!isPlaying)}
-						className="bg-red-600 hover:bg-red-500 text-white font-extrabold px-6 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2 text-sm"
+						className="bg-emerald-500 hover:bg-emerald-400 text-black font-black px-6 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2 text-xs sm:text-sm uppercase active:scale-95"
 					>
-						{isPlaying ? "⏸ Pause" : "▶ Play"}
+						{isPlaying ? "⏸ PAUSE" : "▶ PLAY REPLAY"}
 					</button>
 
 					<button
 						onClick={() => setCurrentFrame(0)}
-						className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2.5 rounded-xl border border-zinc-700 text-sm font-semibold"
+						className="bg-zinc-900 hover:bg-zinc-800 text-zinc-300 px-4 py-2.5 rounded-xl border border-zinc-800 text-xs sm:text-sm font-bold uppercase"
 					>
-						⏮ Reset
+						RESET
 					</button>
 
 					<input
@@ -241,14 +244,14 @@ export default function RaceReplay({
 						max={maxFrames - 1}
 						value={currentFrame}
 						onChange={(e) => setCurrentFrame(Number(e.target.value))}
-						className="w-full accent-red-600 cursor-pointer h-2 bg-zinc-800 rounded-lg"
+						className="w-full accent-emerald-500 cursor-pointer h-2 bg-zinc-800 rounded-lg"
 					/>
 				</div>
 
 				{/* Driver Filter Chips */}
 				<div className="flex flex-wrap items-center gap-2 pt-2 border-t border-zinc-800">
-					<span className="text-xs text-zinc-400 font-semibold mr-2">
-						Filter Drivers:
+					<span className="text-xs text-zinc-500 font-bold uppercase mr-2">
+						DRIVER FILTERS:
 					</span>
 					{replayData.drivers.map((drv: string) => {
 						const isVisible = visibleDrivers.includes(drv);
@@ -257,7 +260,7 @@ export default function RaceReplay({
 								key={drv}
 								onClick={() => toggleDriverVisibility(drv)}
 								onDoubleClick={() => setSpotlightDriver(drv)}
-								className={`px-2.5 py-1 text-xs font-mono font-bold rounded-lg border transition ${
+								className={`px-3 py-1 text-xs font-mono font-bold rounded-lg border transition uppercase ${
 									isVisible
 										? "bg-zinc-800 border-zinc-700 text-white"
 										: "bg-zinc-950 border-zinc-900 text-zinc-600"
