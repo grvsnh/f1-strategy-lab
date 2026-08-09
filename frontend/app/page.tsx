@@ -17,7 +17,6 @@ import TrackMap from "../components/TrackMap";
 import LapDeltaChart from "../components/LapDeltaChart";
 import StrategyCard from "../components/StrategyCard";
 import RecommendationCard from "../components/RecommendationCard";
-import RaceSelector from "../components/RaceSelector";
 import TrackCentricMap from "../components/TrackCentricMap";
 import DriverGrid from "../components/DriverGrid";
 import DriverIntelligenceModal from "../components/DriverIntelligenceModal";
@@ -28,7 +27,6 @@ import AdvancedRaceAnalytics from "../components/AdvancedRaceAnalytics";
 import HeroRaceSearchLanding from "../components/HeroRaceSearchLanding";
 import MotionPathLoader from "../components/MotionPathLoader";
 import { ChartSkeleton } from "../components/Skeletons";
-import Navbar from "../components/Navbar";
 import ErrorBoundary from "../components/ErrorBoundary";
 
 interface RaceData {
@@ -77,12 +75,22 @@ interface RecommendationData {
 	message: string;
 }
 
+const SESSIONS = [
+	{ code: "FP1", label: "FP1" },
+	{ code: "FP2", label: "FP2" },
+	{ code: "FP3", label: "FP3" },
+	{ code: "Q", label: "QUALIFYING" },
+	{ code: "S", label: "SPRINT" },
+	{ code: "R", label: "RACE" },
+];
+
 export default function Home() {
 	const [hasActiveSelection, setHasActiveSelection] = useState(false);
 	const [isAnimatingLoader, setIsAnimatingLoader] = useState(false);
 
 	const [selectedYear, setSelectedYear] = useState(2026);
 	const [selectedGrandPrix, setSelectedGrandPrix] = useState("Bahrain Grand Prix");
+	const [selectedLocation, setSelectedLocation] = useState("Sakhir");
 	const [selectedSession, setSelectedSession] = useState("R");
 
 	const [raceData, setRaceData] = useState<RaceData | null>(null);
@@ -105,12 +113,15 @@ export default function Home() {
 	const handleSelectRaceFromLanding = ({
 		year,
 		grandPrix,
+		location,
 	}: {
 		year: number;
 		grandPrix: string;
+		location: string;
 	}) => {
 		setSelectedYear(year);
 		setSelectedGrandPrix(grandPrix);
+		setSelectedLocation(location || grandPrix);
 		setSelectedSession("R");
 		setIsAnimatingLoader(true);
 	};
@@ -185,48 +196,70 @@ export default function Home() {
 	}, [hasActiveSelection, selectedYear, selectedGrandPrix, selectedSession, driverA, driverB]);
 
 	return (
-		<div className="min-h-screen bg-black text-white pb-12 font-mono">
+		<div className="min-h-screen bg-black text-white font-mono">
 			{/* Motion Path F1 Circuit Animation Screen */}
 			{isAnimatingLoader && (
 				<MotionPathLoader
 					raceName={selectedGrandPrix}
+					location={selectedLocation}
 					year={selectedYear}
 					onComplete={handleLoaderComplete}
 				/>
 			)}
 
-			{/* MAIN LANDING SCREEN: No top navbar, only searchbar and multi-row race cards */}
+			{/* MAIN LANDING SCREEN: No Navbar, No Scroll, Single-page layout */}
 			{!hasActiveSelection ? (
 				<HeroRaceSearchLanding onSelectRace={handleSelectRaceFromLanding} />
 			) : (
-				<>
-					<Navbar
-						activeYear={selectedYear}
-						activeGrandPrix={selectedGrandPrix}
-						activeSession={selectedSession}
-						onResetSearch={() => setHasActiveSelection(false)}
-					/>
+				<div className="pb-12 pt-6">
+					{/* OVERHAULED RACE WORKBENCH HEADER: No Navbar, Clean Controls */}
+					<header className="max-w-7xl mx-auto px-6 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
+						<div className="flex items-center gap-4">
+							<button
+								onClick={() => setHasActiveSelection(false)}
+								className="bg-zinc-900 hover:bg-emerald-500 hover:text-black border border-zinc-800 text-zinc-300 px-3.5 py-2 rounded-xl text-xs font-bold transition uppercase flex items-center gap-1.5 shadow-lg"
+							>
+								← BACK TO RACES
+							</button>
+							<div>
+								<h2 className="text-xl font-bold uppercase text-white tracking-wide">
+									{selectedYear} {selectedGrandPrix}
+								</h2>
+								<p className="text-[11px] text-zinc-500 font-medium uppercase">
+									📍 {selectedLocation} • TELEMETRY LAB
+								</p>
+							</div>
+						</div>
+
+						{/* Session Pills */}
+						<div className="flex gap-1.5 bg-zinc-900/90 p-1.5 rounded-xl border border-zinc-800">
+							{SESSIONS.map((s) => (
+								<button
+									key={s.code}
+									onClick={() => setSelectedSession(s.code)}
+									className={`px-3 py-1.5 text-xs font-bold rounded-lg transition uppercase ${
+										selectedSession === s.code
+											? "bg-emerald-500 text-black shadow-md"
+											: "text-zinc-400 hover:text-white hover:bg-zinc-800"
+									}`}
+								>
+									{s.label}
+								</button>
+							))}
+						</div>
+					</header>
 
 					<main className="max-w-7xl mx-auto px-6">
-						<RaceSelector
-							selectedYear={selectedYear}
-							selectedGrandPrix={selectedGrandPrix}
-							selectedSession={selectedSession}
-							onYearChange={setSelectedYear}
-							onGrandPrixChange={setSelectedGrandPrix}
-							onSessionChange={setSelectedSession}
-						/>
-
 						{error && (
-							<div className="border-2 border-red-600 bg-red-950 p-4 mb-6 text-red-300 font-mono text-sm">
+							<div className="border border-red-800 bg-red-950/60 p-4 rounded-xl mb-6 text-red-300 font-mono text-xs uppercase">
 								⚠️ {error}
 							</div>
 						)}
 
-						{/* WORKBENCH LAYOUT: Left side Drivers, Middle Circuit Map, Right Analytics */}
+						{/* WORKBENCH LAYOUT: Left Racers List, Middle Circuit Map, Right Analytics */}
 						{raceData && (
 							<div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-start">
-								{/* LEFT SIDE: Drivers List (Racers Names) */}
+								{/* LEFT SIDE: Racers List */}
 								<div className="lg:col-span-3">
 									<DriverGrid
 										drivers={raceData.drivers}
@@ -238,17 +271,21 @@ export default function Home() {
 									/>
 								</div>
 
-								{/* MIDDLE: Circuit Racetrack Map */}
+								{/* MIDDLE: Circuit Racetrack Map from bacinger/f1-circuits */}
 								<div className="lg:col-span-5">
-									<TrackCentricMap trackData={trackOutline} selectedDriver={driverA} />
+									<TrackCentricMap
+										trackData={trackOutline}
+										selectedDriver={driverA}
+										location={selectedLocation}
+									/>
 								</div>
 
-								{/* RIGHT SIDE: Driver Telemetry Controls & Quick Insights */}
+								{/* RIGHT SIDE: Driver Telemetry Controls & Pit Recommendation */}
 								<div className="lg:col-span-4 space-y-4">
-									<div className="border-2 border-zinc-800 bg-zinc-950 p-4">
-										<h4 className="text-sm font-bold uppercase text-white mb-3 flex items-center justify-between border-b border-zinc-800 pb-2">
+									<div className="border border-zinc-800/80 bg-zinc-900/60 rounded-2xl p-4">
+										<h4 className="text-xs font-bold uppercase text-white mb-3 flex items-center justify-between border-b border-zinc-800 pb-2">
 											<span>ACTIVE DRIVER ANALYTICS</span>
-											<span className="bg-red-600 text-white text-xs px-2 py-0.5 font-black">
+											<span className="bg-emerald-500 text-black text-xs px-2 py-0.5 rounded font-black">
 												{driverA}
 											</span>
 										</h4>
@@ -350,7 +387,7 @@ export default function Home() {
 							</ErrorBoundary>
 						)}
 					</main>
-				</>
+				</div>
 			)}
 		</div>
 	);

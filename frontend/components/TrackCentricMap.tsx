@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { getCircuitByLocation } from "../lib/circuits";
 
 const Plot = dynamic(() => import("react-plotly.js"), {
 	ssr: false,
@@ -19,15 +20,23 @@ interface TrackOutlineData {
 interface TrackCentricMapProps {
 	trackData: TrackOutlineData | null;
 	selectedDriver?: string;
+	location?: string;
 	title?: string;
 }
 
 export default function TrackCentricMap({
 	trackData,
 	selectedDriver,
+	location,
 	title = "RACETRACK CIRCUIT MAP",
 }: TrackCentricMapProps) {
-	if (!trackData || !trackData.x || trackData.x.length === 0) {
+	const circuitInfo = getCircuitByLocation(location || trackData?.location || trackData?.circuit || "");
+
+	const mapX = circuitInfo ? circuitInfo.norm_x : trackData?.x || [];
+	const mapY = circuitInfo ? circuitInfo.norm_y : trackData?.y || [];
+	const speedData = trackData?.speed || [];
+
+	if (mapX.length === 0) {
 		return (
 			<div className="border border-zinc-800/80 bg-zinc-900/60 rounded-2xl p-8 flex items-center justify-center min-h-[440px] font-mono">
 				<span className="text-zinc-500 font-medium text-xs uppercase">
@@ -38,14 +47,14 @@ export default function TrackCentricMap({
 	}
 
 	return (
-		<div className="border border-zinc-800/80 bg-zinc-900/60 rounded-2xl p-4 font-mono shadow-xl">
+		<div className="border border-zinc-800/80 bg-zinc-900/60 rounded-2xl p-4 font-mono shadow-2xl">
 			<div className="flex justify-between items-center mb-3 border-b border-zinc-800/80 pb-2">
 				<div>
 					<h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
 						🏁 {title}
 					</h3>
 					<p className="text-[10px] text-zinc-500 font-medium uppercase mt-0.5">
-						{trackData.circuit} • {trackData.location}
+						{circuitInfo ? circuitInfo.name : trackData?.circuit} • {location || trackData?.location}
 					</p>
 				</div>
 				{selectedDriver && (
@@ -59,8 +68,8 @@ export default function TrackCentricMap({
 				<Plot
 					data={[
 						{
-							x: trackData.x,
-							y: trackData.y,
+							x: mapX,
+							y: mapY,
 							mode: "markers+lines",
 							type: "scatter",
 							line: {
@@ -69,9 +78,9 @@ export default function TrackCentricMap({
 							},
 							marker: {
 								size: 5,
-								color: trackData.speed,
+								color: speedData.length === mapX.length ? speedData : undefined,
 								colorscale: "Turbo",
-								showscale: true,
+								showscale: speedData.length === mapX.length,
 								colorbar: {
 									title: "KM/H",
 									tickfont: { color: "#a1a1aa", family: "monospace" },
