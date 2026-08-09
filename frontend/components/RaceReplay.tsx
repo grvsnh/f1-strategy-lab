@@ -105,14 +105,14 @@ export default function RaceReplay({
 
 	if (loading) {
 		return (
-			<div className="border border-zinc-800 bg-zinc-900/40 rounded-2xl p-6 my-6 font-mono text-center flex items-center justify-between">
+			<div className="apple-card rounded-2xl p-6 my-6 font-sans text-center flex items-center justify-between">
 				<div className="flex items-center gap-3">
-					<span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-					<span className="text-xs sm:text-sm font-bold uppercase text-zinc-400">
+					<span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-emerald)] animate-ping"></span>
+					<span className="text-xs sm:text-sm font-bold uppercase text-[var(--text-secondary)]">
 						SYNCING 2D RACE REPLAY TIMELINE IN BACKGROUND...
 					</span>
 				</div>
-				<span className="text-xs text-emerald-400 font-bold uppercase">
+				<span className="text-xs text-[var(--accent-emerald)] font-bold uppercase">
 					EXPLORE TELEMETRY BELOW ↓
 				</span>
 			</div>
@@ -125,13 +125,13 @@ export default function RaceReplay({
 	const outline = replayData.track_outline || { x: [], y: [] };
 
 	return (
-		<div className="border border-zinc-800/80 bg-zinc-900/60 rounded-2xl p-6 my-6 shadow-2xl font-mono">
+		<div className="apple-card rounded-2xl p-6 my-6 shadow-xl font-sans">
 			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
 				<div>
-					<h3 className="text-xl font-bold uppercase text-white flex items-center gap-2">
+					<h3 className="text-xl font-bold uppercase text-[var(--text-primary)] flex items-center gap-2">
 						🎬 2D Animated Race Replay Engine
 					</h3>
-					<p className="text-xs text-zinc-500 font-medium uppercase mt-0.5">
+					<p className="text-xs text-[var(--text-secondary)] font-semibold uppercase mt-0.5">
 						{grandPrix} ({year}) • FRAME {currentFrame + 1} / {maxFrames}
 					</p>
 				</div>
@@ -143,8 +143,8 @@ export default function RaceReplay({
 							onClick={() => setSpeed(s)}
 							className={`px-3 py-1.5 text-xs font-mono font-bold rounded-xl border transition ${
 								speed === s
-									? "bg-emerald-500 border-emerald-400 text-black shadow-md"
-									: "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white"
+									? "bg-[var(--accent-emerald)] border-[var(--accent-emerald)] text-black shadow-md"
+									: "apple-card text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
 							}`}
 						>
 							{s}x
@@ -154,13 +154,14 @@ export default function RaceReplay({
 			</div>
 
 			{/* Replay Visualizer Canvas */}
-			<div className="relative w-full h-[400px] sm:h-[480px] bg-black/80 rounded-2xl border border-zinc-800/80 p-4 flex items-center justify-center overflow-hidden mb-6 shadow-inner">
+			<div className="relative w-full h-[400px] sm:h-[480px] apple-glass rounded-2xl p-4 flex items-center justify-center overflow-hidden mb-6 shadow-inner">
 				<svg className="w-full h-full" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet">
 					{/* Circuit Track Path */}
 					{outline.x.length > 0 && (
 						<polyline
 							fill="none"
-							stroke="#27272a"
+							stroke="gray"
+							strokeOpacity="0.3"
 							strokeWidth="10"
 							strokeLinecap="round"
 							strokeLinejoin="round"
@@ -201,7 +202,7 @@ export default function RaceReplay({
 								<text
 									x={cx + 10}
 									y={cy + 4}
-									fill={isSpotlight ? "#ffffff" : "#a1a1aa"}
+									fill={isSpotlight ? "#ffffff" : "gray"}
 									fontSize={isSpotlight ? "14" : "11"}
 									fontWeight="bold"
 									fontFamily="monospace"
@@ -214,9 +215,9 @@ export default function RaceReplay({
 				</svg>
 
 				{spotlightDriver && (
-					<div className="absolute top-4 left-4 bg-zinc-900 border border-zinc-800 text-white text-xs px-3.5 py-1.5 rounded-xl flex items-center gap-2 font-bold shadow-lg">
-						<span>SPOTLIGHT: <strong className="text-emerald-400">{spotlightDriver}</strong></span>
-						<button onClick={() => setSpotlightDriver(null)} className="text-zinc-500 hover:text-white">✕</button>
+					<div className="absolute top-4 left-4 apple-card border border-[var(--border-color)] text-[var(--text-primary)] text-xs px-3.5 py-1.5 rounded-xl flex items-center gap-2 font-bold shadow-lg">
+						<span>SPOTLIGHT: <strong className="text-[var(--accent-emerald)]">{spotlightDriver}</strong></span>
+						<button onClick={() => setSpotlightDriver(null)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">✕</button>
 					</div>
 				)}
 			</div>
@@ -226,14 +227,14 @@ export default function RaceReplay({
 				<div className="flex items-center gap-4">
 					<button
 						onClick={() => setIsPlaying(!isPlaying)}
-						className="bg-emerald-500 hover:bg-emerald-400 text-black font-black px-6 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2 text-xs sm:text-sm uppercase active:scale-95"
+						className="bg-[var(--accent-emerald)] hover:bg-emerald-400 text-black font-black px-6 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2 text-xs sm:text-sm uppercase active:scale-95"
 					>
 						{isPlaying ? "⏸ PAUSE" : "▶ PLAY REPLAY"}
 					</button>
 
 					<button
 						onClick={() => setCurrentFrame(0)}
-						className="bg-zinc-900 hover:bg-zinc-800 text-zinc-300 px-4 py-2.5 rounded-xl border border-zinc-800 text-xs sm:text-sm font-bold uppercase"
+						className="apple-card text-[var(--text-primary)] px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold uppercase"
 					>
 						RESET
 					</button>
@@ -244,13 +245,13 @@ export default function RaceReplay({
 						max={maxFrames - 1}
 						value={currentFrame}
 						onChange={(e) => setCurrentFrame(Number(e.target.value))}
-						className="w-full accent-emerald-500 cursor-pointer h-2 bg-zinc-800 rounded-lg"
+						className="w-full accent-[var(--accent-emerald)] cursor-pointer h-2 bg-zinc-300 dark:bg-zinc-800 rounded-lg"
 					/>
 				</div>
 
 				{/* Driver Filter Chips */}
-				<div className="flex flex-wrap items-center gap-2 pt-2 border-t border-zinc-800">
-					<span className="text-xs text-zinc-500 font-bold uppercase mr-2">
+				<div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[var(--border-color)]">
+					<span className="text-xs text-[var(--text-secondary)] font-bold uppercase mr-2">
 						DRIVER FILTERS:
 					</span>
 					{replayData.drivers.map((drv: string) => {
@@ -262,8 +263,8 @@ export default function RaceReplay({
 								onDoubleClick={() => setSpotlightDriver(drv)}
 								className={`px-3 py-1 text-xs font-mono font-bold rounded-lg border transition uppercase ${
 									isVisible
-										? "bg-zinc-800 border-zinc-700 text-white"
-										: "bg-zinc-950 border-zinc-900 text-zinc-600"
+										? "bg-[var(--accent-emerald)]/20 border-[var(--accent-emerald)] text-[var(--text-primary)]"
+										: "apple-card text-[var(--text-secondary)]"
 								}`}
 							>
 								{drv}
